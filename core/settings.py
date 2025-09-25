@@ -80,10 +80,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'eyl_db',        # Nombre de la BD que acabas de crear
+        'USER': 'postgres',      # Usuario de PostgreSQL
+        'PASSWORD': 'zoliva',  # La contraseña que configuraste
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 # Password validation
