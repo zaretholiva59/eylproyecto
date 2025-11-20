@@ -1,0 +1,32 @@
+<div class="card border-0 shadow-sm h-100">  
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <h5 class="mb-0 me-2">Curva S - EVM</h5>
+            <button class="btn btn-sm btn-light me-2" onclick="mostrarTablaCurvaS()" title="Ver tabla de datos">📋</button>
+            <div class="input-group input-group-sm" style="width: 180px;">
+                <span class="input-group-text">Vista</span>
+                <select id="granularitySelector" class="form-select form-select-sm" onchange="setCurvaSGranularity(this.value)">
+                    <option value="meses" selected>Meses</option>
+                    <option value="semanas">Semanas</option>
+                    <option value="dias">Días</option>
+                </select>
+            </div>
+        </div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-light active" onclick="showCurvaSView('evm', event)">EVM</button>
+            <button class="btn btn-outline-light" onclick="showCurvaSView('cpi', event)">CPI/SPI</button>
+            <button class="btn btn-outline-light" onclick="showCurvaSView('progreso', event)">Progreso</button>
+        </div>
+    </div>
+    <div class="card-body">  
+        <div id="curvaS-evm" class="chart-view">  
+            <canvas id="curvaSChart" height="250"></canvas>  
+        </div>  
+        <div id="curvaS-cpi" class="chart-view" style="display: none;">  
+            <canvas id="cpiSpiChart" height="250"></canvas>  
+        </div>  
+        <div id="curvaS-progreso" class="chart-view" style="display: none;">  
+            <canvas id="progressChart" height="250"></canvas>  
+        </div>  
+    </div>  
+</div>

@@ -1,0 +1,58 @@
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">📋 Información del Proyecto</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Centro Costo:</strong> {{ proyecto.cost_center }}</p>
+                <p class="mb-2"><strong>Duración Planeada:</strong> {{ duracion_planeada }} meses</p>
+                <p class="mb-2"><strong>Duración Real:</strong> {{ duracion_real }} meses</p>
+                <p class="mb-0"><strong>Monto Faltante:</strong> S/ {{ monto_faltante|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">📊 Métricas EVM</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2"><strong>CPI:</strong> {{ cpi|floatformat:2 }}</div>
+                <div class="mb-2"><strong>SPI:</strong> {{ spi|floatformat:2 }}</div>
+                <div class="mb-2"><strong>CV:</strong> S/ {{ cv|floatformat:2 }}</div>
+                <div class="mb-2"><strong>SV:</strong> S/ {{ sv|floatformat:2 }}</div>
+                <div class="mb-0"><strong>EAC:</strong> S/ {{ eac|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0">📈 Rendimiento</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Eficiencia Costo:</strong>
+                    <span class="badge {% if cpi >= 1 %}bg-success{% else %}bg-danger{% endif %} float-end">
+                        {{ cpi|floatformat:2 }}
+                    </span>
+                </div>
+                <div class="mb-2">
+                    <strong>Eficiencia Tiempo:</strong>
+                    <span class="badge {% if spi >= 1 %}bg-success{% else %}bg-danger{% endif %} float-end">
+                        {{ spi|floatformat:2 }}
+                    </span>
+                </div>
+                <div class="mb-0">
+                    <strong>Estado General:</strong>
+                    <span class="badge {% if cpi >= 1 and spi >= 1 %}bg-success{% elif cpi >= 1 or spi >= 1 %}bg-warning{% else %}bg-danger{% endif %} float-end">
+                        {% if cpi >= 1 and spi >= 1 %}Óptimo{% elif cpi >= 1 or spi >= 1 %}Regular{% else %}Crítico{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

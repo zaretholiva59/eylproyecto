@@ -1,0 +1,12 @@
+                    <td>
+                        {% for invoice in oc.invoices.all %}
+                            {{ invoice.invoice_number }}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for invoice in oc.invoices.all %}
+El sistema no puede aceptar la fecha que escribi¢.
+Escriba la nueva fecha: (dd-mm-aa)                             {{ invoice.issue_date
+El sistema no puede aceptar la fecha que escribi¢.
+Escriba la nueva fecha: (dd-mm-aa)                         {% endfor %}
+                    </td>

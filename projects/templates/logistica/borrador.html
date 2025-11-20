@@ -1,0 +1,231 @@
+{% extends "blogis.html" %}
+
+{% block logis_content %}
+<div class="container mt-4">
+    <h2>➕ Registrar Orden de Compra</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Datos Generales -->
+<fieldset class="border p-3 mb-3">
+    <legend>📝 Datos Generales</legend>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label for="id_numero_oc" class="form-label">Número OC</label>
+            {{ form_oc.numero_oc }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_centro_costo" class="form-label">Centro de Costo</label>
+            {{ form_oc.centro_costo }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_preventa" class="form-label">Código Proyecto</label>
+            {{ form_oc.preventa }}
+        </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-4">
+            {{ form_oc.fecha_emision.label_tag }} 
+            {{ form_oc.fecha_emision }}
+        </div>
+        <div class="col-md-4">
+            {{ form_oc.fecha_entrega_inicial.label_tag }}
+            {{ form_oc.fecha_entrega_inicial }}
+        </div>
+        <div class="col-md-4">
+            {{ form_oc.fecha_entrega_final.label_tag }}
+            {{ form_oc.fecha_entrega_final }}
+        </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-4">
+            {{ form_oc.moneda.label_tag }}
+            {{ form_oc.moneda }}
+        </div>
+        <div class="col-md-4">
+            {{ form_oc.status_oc.label_tag }}
+            {{ form_oc.status_oc }}
+        </div>
+        <div class="col-md-4">
+            {{ form_oc.observaciones.label_tag }}
+            {{ form_oc.observaciones }}
+        </div>
+    </div>
+</fieldset>
+
+<script>
+$(document).ready(function(){
+    // Mapear id de preventa a centro de costo
+    const proyectoMap = {
+        {% for p in preventas %}
+        "{{ p.id }}": "{{ p.centro_costo }}",
+        {% endfor %}
+    };
+
+    // Al cambiar el dropdown
+    $('#id_preventa').change(function(){
+        const id = $(this).val();
+        $('#id_centro_costo').val(proyectoMap[id] || '');
+    });
+
+    // Inicializar al cargar
+    const initialId = $('#id_preventa').val();
+    if(initialId){
+        $('#id_centro_costo').val(proyectoMap[initialId] || '');
+    }
+});
+</script>
+
+
+        <!-- Productos -->
+        <fieldset class="border p-3 mb-3">
+            <legend>📦 Productos</legend>
+            <div id="productos-container">
+                <div class="row mb-2 g-2 align-items-end producto-row" data-index="0">
+                    <div class="col">
+                        <label>Producto</label>
+                        <input type="text" name="codigo_articulo_0" class="form-control autocomplete-producto">
+                        <input type="hidden" name="codigo_articulo_id_0" class="codigo_articulo_id">
+                    </div>
+                    <div class="col">
+                        <label>Unidades</label>
+                        <input type="number" name="unidades_0" class="form-control unidades" value="1">
+                    </div>
+                    <div class="col">
+                        <label>Precio Unitario</label>
+                        <input type="number" name="monto_0" class="form-control monto" step="0.01" value="0.00">
+                    </div>
+                    <div class="col">
+                        <label>Subtotal</label>
+                        <input type="text" class="form-control subtotal" readonly>
+                    </div>
+                    <div class="col">
+                        <label>IGV</label>
+                        <input type="text" class="form-control igv" readonly>
+                    </div>
+                    <div class="col">
+                        <label>Total</label>
+                        <input type="text" class="form-control total" readonly>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger remove-row">🗑</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-2" id="add-producto">➕ Agregar Producto</button>
+            <input type="hidden" id="productos-total" name="form-TOTAL_FORMS" value="1">
+
+            <div class="mt-2">
+                <strong>Total OC: S/ <span id="oc-total">0.00</span></strong>
+            </div>
+        </fieldset>
+
+        <!-- Proveedores -->
+        <fieldset class="border p-3 mb-3">
+            <legend>🏭 Proveedores</legend>
+            <div id="proveedores-container">
+                <div class="row mb-2 g-2 align-items-end proveedor-row" data-index="0">
+                    <div class="col">
+                        <label>Proveedor</label>
+                        <input type="text" name="ruc_proveedor_0" class="form-control autocomplete-proveedor">
+                        <input type="hidden" name="ruc_proveedor_id_0" class="ruc_proveedor_id">
+                    </div>
+                    <div class="col">
+                        <label>Monto</label>
+                        <input type="number" name="monto_proveedor_0" class="form-control" step="0.01" value="0.00">
+                    </div>
+                    <div class="col">
+                        <label>Fecha Entrega</label>
+                        <input type="date" name="fecha_entrega_proveedor_0" class="form-control">
+                    </div>
+                    <div class="col">
+                        <label>Estado</label>
+                        <input type="text" name="estado_proveedor_0" class="form-control">
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger remove-row">🗑</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-2" id="add-proveedor">➕ Agregar Proveedor</button>
+            <input type="hidden" id="proveedores-total" name="formprov-TOTAL_FORMS" value="1">
+        </fieldset>
+
+        <button type="submit" class="btn btn-success">💾 Guardar</button>
+        <a href="{% url 'logistica_index' %}" class="btn btn-secondary">⬅️ Volver</a>
+    </form>
+</div>
+
+<!-- JS & Autocomplete -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+<script>
+function actualizarIndices(container, claseFila, prefijo) {
+    container.find(claseFila).each(function(index) {
+        $(this).attr('data-index', index);
+        $(this).find('input, select').each(function(){
+            let name = $(this).attr('name');
+            if(name){
+                let newName = name.replace(/\d+/, index);
+                $(this).attr('name', newName);
+            }
+        });
+    });
+}
+
+// ==== PRODUCTOS ====
+$('#add-producto').click(function(){
+    let container = $('#productos-container');
+    let lastFila = container.find('.producto-row').last();
+    let nuevaFila = lastFila.clone();
+    nuevaFila.find('input').val('');
+    nuevaFila.appendTo(container);
+    actualizarIndices(container, '.producto-row', 'codigo_articulo');
+});
+
+// ==== PROVEEDORES ====
+$('#add-proveedor').click(function(){
+    let container = $('#proveedores-container');
+    let lastFila = container.find('.proveedor-row').last();
+    let nuevaFila = lastFila.clone();
+    nuevaFila.find('input').val('');
+    nuevaFila.appendTo(container);
+    actualizarIndices(container, '.proveedor-row', 'ruc_proveedor');
+});
+
+// ==== REMOVER FILAS ====
+$(document).on('click', '.remove-row', function(){
+    let container = $(this).closest('.row').parent();
+    $(this).closest('.row').remove();
+    actualizarIndices(container, '.producto-row', 'codigo_articulo');
+    actualizarIndices(container, '.proveedor-row', 'ruc_proveedor');
+    calcularTotalOC();
+});
+
+// ==== ACTUALIZAR CENTRO DE COSTO SEGÚN PROYECTO ====
+$(document).ready(function(){
+    const proyectoMap = {
+        {% for p in preventas %}
+        "{{ p.id }}": "{{ p.centro_costo }}",
+        {% endfor %}
+    };
+
+    $('#id_preventa').change(function(){
+        const cod = $(this).val();
+        $('#id_centro_costo').val(proyectoMap[cod] || '');
+    });
+
+    const initialCod = $('#id_preventa').val();
+    if(initialCod){
+        $('#id_centro_costo').val(proyectoMap[initialCod] || '');
+    }
+});
+</script>
+
+{% endblock %}

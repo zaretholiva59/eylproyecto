@@ -4,22 +4,91 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard Template · Bootstrap v5.3</title>
+    <title>EYL · Gestión de Proyectos</title>
     <script src="{% static 'assets/js/color-modes.js' %}"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
-    <style>
-      .custom-navbar { background-color: #186397 !important; }
-      .custom-navbar .navbar-brand { color: #fff !important; }
-      .custom-navbar .navbar-brand:hover { color: #cce6f5 !important; }
-    </style>
+<style>
+    :root {
+        --navbar-height: 50px;
+        --logo-height: 40px;
+        --navbar-bg-color: #186397;
+    }
+
+    .custom-navbar {
+        background-color: var(--navbar-bg-color);
+        min-height: var(--navbar-height);
+        height: var(--navbar-height);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 1rem;
+    }
+
+    .navbar-logo-container {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        margin-left: 2rem;
+    }
+
+    .navbar-logo {
+        height: var(--logo-height);
+        width: auto;
+        max-width: 200px;
+        filter: 
+            brightness(0)
+            invert(1)
+            drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.8))
+            drop-shadow(0px 0px 15px rgba(255, 255, 255, 0.6))
+            brightness(1.2);
+        transition: filter 0.3s ease;
+    }
+
+    .navbar-logo:hover {
+        filter: 
+            brightness(0)
+            invert(1)
+            drop-shadow(0px 0px 12px rgba(255, 255, 255, 1))
+            drop-shadow(0px 0px 25px rgba(255, 255, 255, 0.8))
+            drop-shadow(0px 0px 40px rgba(255, 255, 255, 0.6))
+            brightness(1.4);
+    }
+
+    @media (max-width: 768px) {
+        :root {
+            --navbar-height: 50px;
+            --logo-height: 35px;
+        }
+        .navbar-logo-container {
+            margin-left: 1rem;
+        }
+        .navbar-logo {
+            max-width: 150px;
+            filter: 
+                brightness(0)
+                invert(1)
+                drop-shadow(0px 0px 6px rgba(255, 255, 255, 0.7))
+                drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.5))
+                brightness(1.1);
+        }
+    }
+
+    .custom-navbar .navbar-brand {
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+</style>
   </head>
   <body>
     <header>
-      <nav class="navbar sticky-top flex-md-nowrap p-0 shadow custom-navbar" data-bs-theme="dark">
-        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#">
-          <img src="https://eylconsultores.com.pe/wp-content/uploads/2023/09/logo-eyl.png" style="height: 40px; width:200px; filter: brightness(0) invert(1);" >
-        </a>
+      <nav class="navbar sticky-top flex-md-nowrap p-0 custom-navbar" data-bs-theme="dark">
+        <div class="navbar-logo-container">
+          <img src="{% static 'img/logo.png' %}" class="navbar-logo alternative" alt="EYL">
+        </div>
       </nav>
     </header>
 
@@ -33,48 +102,74 @@
             </div>
             <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
               <ul class="nav flex-column">
+
+                <!-- ✅ CAMBIO: antes decía 'dashboard_index' -->
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true"><use xlink:href="#graph-up"></use></svg>
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'dashboard_home' %}">
+                    <i class="bi bi-graph-up"></i>
                     Dashboard
                   </a>
                 </li>
+
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true"><use xlink:href="#clipboard"></use></svg>
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'grid' %}">
+                    <i class="bi bi-clipboard"></i>
                     Proyecto
                   </a>
                 </li>
+
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true"><use xlink:href="#cart"></use></svg>
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'presale_list' %}">
+                    <i class="bi bi-cart"></i>
                     Pre-venta
                   </a>
                 </li>
+
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true"><use xlink:href="#people"></use></svg>
-                    Costos Variables
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'logis_index' %}">
+                    <i class="bi bi-truck"></i>
+                    Logística
                   </a>
                 </li>
+
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true"><use xlink:href="#graph-up"></use></svg>
-                    Reportes
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'activities_home' %}">
+                    <i class="bi bi-list-task"></i>
+                    Actividades
                   </a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true"><use xlink:href="#list"></use></svg>
-                    Trello
-                  </a>
-                </li>
-              </ul>
+
+                 <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'contabilidad:reportes_contables' %}">
+                  <i class="bi bi-file-earmark-bar-graph"></i>
+                  Reportes Contables
+                </a>
+                              </li>
+  <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2" href="{% url 'customers_list' %}">
+                  <i class="bi bi-file-earmark-bar-graph"></i>
+                 Clientes
+                </a>
+                              </li>
+
+              
+                 <li class="nav-item">
+             <a class="nav-link d-flex align-items-center gap-2" href="{% url 'contabilidad:seleccion_rol' %}">
+                <i class="bi bi-cash-coin"></i>
+                Contabilidad
+              </a>
+              </li>
+                
+
+               
+            
+
               <hr class="my-3" />
+
               <ul class="nav flex-column mb-auto">
                 <li class="nav-item">
                   <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <svg class="bi" aria-hidden="true"><use xlink:href="#door-closed"></use></svg>
+                    <i class="bi bi-box-arrow-right"></i>
                     Cerrar sesión
                   </a>
                 </li>
@@ -91,6 +186,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/dashboard.js' %}"></script>
   </body>
 </html>

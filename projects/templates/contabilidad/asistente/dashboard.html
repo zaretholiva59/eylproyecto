@@ -1,0 +1,334 @@
+{% extends "contabilidad/base_contabilidad.html" %}
+{% load formatting %}
+
+{% block title %}Dashboard - Tesorero{% endblock %}
+{% block page_title %}📊 Dashboard - Tesorero{% endblock %}
+
+{% block sidebar %}
+<li class="nav-item">
+    <a class="nav-link active" href="{% url 'contabilidad:asistente_dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:factura_cliente_list' %}">
+        <i class="bi bi-receipt"></i> Mis Facturas
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:factura_cliente_crear' %}">
+        <i class="bi bi-plus-circle"></i> Nueva Factura
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:reportes_contables' %}">
+        <i class="bi bi-graph-up"></i> Reportes
+    </a>
+</li>
+{% endblock %}
+
+{% block header_buttons %}
+<div class="btn-group me-2">
+    <a href="{% url 'contabilidad:factura_cliente_crear' %}" class="btn btn-sm btn-success">
+        <i class="bi bi-plus-circle"></i> Nueva Factura
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Tarjeta Facturas Pendientes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Facturas Emitidas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ facturas_emitidas }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-receipt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta Pagos Reportados -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Pagos Reportados
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pagos_reportados }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock-history fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta Facturas Pagadas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Facturas Pagadas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ facturas_pagadas }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta Monto Total -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Facturado
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">S/ {{ total_facturado }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones Rápidas -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🔄 Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'contabilidad:factura_cliente_crear' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-plus-circle"></i><br>
+                            Nueva Factura
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'contabilidad:factura_cliente_list' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-list-ul"></i><br>
+                            Ver Mis Facturas
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'contabilidad:reportes_contables' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-graph-up"></i><br>
+                            Reportes
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'contabilidad:seleccion_rol' %}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-arrow-left-right"></i><br>
+                            Cambiar Rol
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Últimas Facturas -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">📋 Mis Últimas Facturas</h5>
+                <a href="{% url 'contabilidad:factura_cliente_list' %}" class="btn btn-sm btn-primary">Ver Todas</a>
+            </div>
+            <div class="card-body">
+                {% if ultimas_facturas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Factura</th>
+                                <th>Proyecto</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Días Pendiente</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factura in ultimas_facturas %}
+                            <tr class="status-{{ factura.status|lower }}">
+                                <td>
+                                    <strong>{{ factura.invoice_number }}</strong>
+                                    {% if factura.invoice_file %}
+                                    <br>
+                                    <small>
+                                        <a href="{{ factura.invoice_file.url }}" target="_blank" class="text-primary">
+                                            <i class="bi bi-file-pdf"></i> Ver PDF
+                                        </a>
+                                    </small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ factura.project.cod_projects_id }} - {{ factura.project.cod_projects.dres_chance }}</td>
+                                <td>S/ {{ factura.amount }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if factura.status == 'EMITIDA' %}bg-warning
+                                        {% elif factura.status == 'PAGO_REPORTADO' %}bg-info
+                                        {% elif factura.status == 'PAGADA' %}bg-success
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ factura.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ factura.invoice_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if factura.status == 'PAGO_REPORTADO' %}
+                                        {% with d=factura.days_since_reported|default:0 %}
+                                            {% if d > 14 %}
+                                                <span class="badge bg-danger">{{ d }} días</span>
+                                            {% elif d >= 7 %}
+                                                <span class="badge" style="background-color:#fd7e14;color:#fff">{{ d }} días</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">{{ d }} días</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if factura.status == 'EMITIDA' %}
+                                    <a href="{% url 'contabilidad:reportar_pago' factura.id %}" class="btn btn-sm btn-outline-info">
+                                        Reportar Pago
+                                    </a>
+                                    {% endif %}
+                                    {% if factura.status == 'EMITIDA' %}
+                                    <a href="{% url 'contabilidad:reportar_pago' factura.id %}" class="btn btn-sm btn-outline-primary">
+                                        Ver
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'contabilidad:verificar_pago' factura.id %}" class="btn btn-sm btn-outline-primary">
+                                        Ver
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No hay facturas registradas</p>
+                    <a href="{% url 'contabilidad:factura_cliente_crear' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Crear Primera Factura
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Métricas por Proyecto (Tesorero) -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📈 Métricas por Proyecto</h5>
+            </div>
+            <div class="card-body">
+                <style>
+                  .metric-icon{display:inline-block;width:18px;height:18px;border-radius:50%;background:#6c757d;color:#fff;font-weight:700;font-size:12px;line-height:18px;text-align:center;margin-left:6px;position:relative;}
+                  .metric-icon::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid #6c757d;}
+                  .metric-icon.metric-info{background:transparent;width:auto;height:auto;line-height:normal;color:#6c757d;}
+                  .metrics-table th{white-space:nowrap;}
+                </style>
+                <div class="table-responsive">
+                    <table class="table table-sm metrics-table">
+                        <thead>
+                            <tr>
+                                <th>Código <span class="metric-icon metric-info" title="¡Código!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Identificador del proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Descripción <span class="metric-icon metric-info" title="¡Descripción!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Nombre o resumen del proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Centro de Costo <span class="metric-icon metric-info" title="¡Centro de Costo!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Agrupador contable asignado al proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Total Facturado <span class="metric-icon metric-info" title="¡Total Facturado!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Importe total facturado.</div><strong>Cómo se calcula</strong><div>Suma de <em>amount</em> de todas las facturas del proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Pagado Verificado <span class="metric-icon metric-info" title="¡Pagado Verificado!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Importe cobrado y verificado en banco.</div><strong>Cómo se calcula</strong><div>Suma de <em>paid_amount</em> (o <em>amount</em> si aplica) con <em>bank_verified_date</em> no nula.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Pendiente por Cobrar <span class="metric-icon metric-info" title="¡Pendiente por Cobrar!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Facturado aún no cobrado (verificado).</div><strong>Cómo se calcula</strong><div>Total facturado − Cobrado verificado.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Pendiente por Facturar <span class="metric-icon metric-info" title="¡Pendiente por Facturar!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Contrato aún no facturado.</div><strong>Cómo se calcula</strong><div>Monto contractual − Total facturado.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Avance Contractual <span class="metric-icon metric-info" title="¡Avance Contractual!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Porcentaje del contrato cobrado (verificado).</div><strong>Cómo se calcula</strong><div>(Cobrado verificado / Monto contractual) × 100.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Facturación vs Contrato <span class="metric-icon metric-info" title="¡Facturación vs Contrato!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Avance de facturación frente al contrato.</div><strong>Cómo se calcula</strong><div>(Total facturado / Monto contractual) × 100.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Eficiencia Cobranza <span class="metric-icon metric-info" title="¡Eficiencia de Cobranza!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Eficiencia de cobro respecto a lo facturado.</div><strong>Cómo se calcula</strong><div>(Cobrado verificado / Total facturado) × 100.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for metric in metricas_proyectos %}
+                            <tr>
+                                <td><strong>{{ metric.codigo }}</strong></td>
+                                <td>{{ metric.descripcion }}</td>
+                                <td>{{ metric.centro_costo }}</td>
+                                <td>S/ {{ metric.total_facturado|currency_pe }}</td>
+                                <td>S/ {{ metric.pagado|currency_pe }}</td>
+                                <td>S/ {{ metric.pendiente|currency_pe }}</td>
+                                <td>S/ {{ metric.pendiente_facturar|currency_pe }}</td>
+                                <td>{{ metric.avance_pct|percent_pe }}%</td>
+                                <td>{{ metric.fact_vs_contrato_pct|percent_pe }}%</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if metric.eficiencia >= 80 %}bg-success{% elif metric.eficiencia >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ metric.eficiencia|floatformat:2 }}%">
+                                            {{ metric.eficiencia|percent_pe }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if metric.eficiencia >= 80 %}bg-success{% elif metric.eficiencia >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {% if metric.eficiencia >= 80 %}Excelente{% elif metric.eficiencia >= 60 %}Aceptable{% else %}Crítico{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var helps = document.querySelectorAll('.metric-icon');
+  helps.forEach(function(el){
+    new bootstrap.Popover(el, {
+      container: 'body',
+      html: true,
+      trigger: 'hover focus',
+      placement: 'bottom'
+    });
+  });
+});
+</script>
+{% endblock %}
+{% endblock %}

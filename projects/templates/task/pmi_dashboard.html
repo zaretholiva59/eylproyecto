@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard PMI - {{ project.cod_projects_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">Dashboard PMI: {{ project.cod_projects_id }} - {{ project.cod_projects.dres_chance }}</h1>
+    
+    <!-- Resumen del Proyecto -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Resumen del Proyecto</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Cliente:</strong> {{ project.cod_projects.client_name }}</p>
+                    <p><strong>Código:</strong> {{ project.cod_projects_id }}</p>
+                    <p><strong>Fecha Inicio:</strong> {{ project.start_date|date:"d/m/Y" }}</p>
+                    <p><strong>Centro de Costo:</strong> {{ project.cost_center }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Estado:</strong> {{ project.state_projects }}</p>
+                    <p><strong>Duración Estimada:</strong> {{ project.estimated_duration }} meses</p>
+                    <p><strong>Avance Físico:</strong> {{ pmi_metrics.physical_progress|floatformat:1 }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Indicadores PMI -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Indicadores PMI - Earned Value Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">CPI (Eficiencia Costos)</div>
+                                <div class="card-body">
+                                    <h3 class="{% if pmi_metrics.cpi >= 1.0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ pmi_metrics.cpi|floatformat:3 }}
+                                    </h3>
+                                    <small>{% if pmi_metrics.cpi >= 1.0 %}✅ Eficiente{% else %}⚠️ Sobre costos{% endif %}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">SPI (Eficiencia Tiempo)</div>
+                                <div class="card-body">
+                                    <h3 class="{% if pmi_metrics.spi >= 1.0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ pmi_metrics.spi|floatformat:3 }}
+                                    </h3>
+                                    <small>{% if pmi_metrics.spi >= 1.0 %}✅ En plazo{% else %}⚠️ Atrasado{% endif %}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">Avance Físico Real</div>
+                                <div class="card-body">
+                                    <h3>{{ pmi_metrics.physical_progress|floatformat:1 }}%</h3>
+                                    <small>Basado en actividades</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">EAC (Estimación a Término)</div>
+                                <div class="card-body">
+                                    <h3>S/ {{ pmi_metrics.eac|floatformat:0 }}</h3>
+                                    <small>Costo final proyectado</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Métricas EVM Detalladas -->
+                    <div class="row mt-3">
+                        <div class="col-md-2">
+                            <div class="card">
+                                <div class="card-header">BAC</div>
+                                <div class="card-body text-center">
+                                    <h5>S/ {{ pmi_metrics.bac|floatformat:0 }}</h5>
+                                    <small>Presupuesto</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card">
+                                <div class="card-header">AC</div>
+                                <div class="card-body text-center">
+                                    <h5>S/ {{ pmi_metrics.ac|floatformat:0 }}</h5>
+                                    <small>Costo Real</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card">
+                                <div class="card-header">EV</div>
+                                <div class="card-body text-center">
+                                    <h5>S/ {{ pmi_metrics.ev|floatformat:0 }}</h5>
+                                    <small>Valor Ganado</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card">
+                                <div class="card-header">PV</div>
+                                <div class="card-body text-center">
+                                    <h5>S/ {{ pmi_metrics.pv|floatformat:0 }}</h5>
+                                    <small>Valor Planificado</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card">
+                                <div class="card-header">CV</div>
+                                <div class="card-body text-center {% if pmi_metrics.ev >= pmi_metrics.ac %}text-success{% else %}text-danger{% endif %}">
+                                    <h5>S/ {{ pmi_metrics.ev|add:pmi_metrics.ac|floatformat:0 }}</h5>
+                                    <small>Variación Costo</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card">
+                                <div class="card-header">SV</div>
+                                <div class="card-body text-center {% if pmi_metrics.ev >= pmi_metrics.pv %}text-success{% else %}text-danger{% endif %}">
+                                    <h5>S/ {{ pmi_metrics.ev|add:pmi_metrics.pv|floatformat:0 }}</h5>
+                                    <small>Variación Cronograma</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Métricas Financieras -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Métricas Financieras</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">Monto Contrato</div>
+                                <div class="card-body">
+                                    <h4>S/ {{ financial_metrics.contract_amount|floatformat:0 }}</h4>
+                                    <small>Valor contrato</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">Total Facturado</div>
+                                <div class="card-body">
+                                    <h4>S/ {{ financial_metrics.total_invoiced|floatformat:0 }}</h4>
+                                    <small>Facturación acumulada</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">Total Gastado</div>
+                                <div class="card-body">
+                                    <h4>S/ {{ financial_metrics.total_spent|floatformat:0 }}</h4>
+                                    <small>Costos reales</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3">
+                                <div class="card-header">Margen Actual</div>
+                                <div class="card-body {% if financial_metrics.current_margin >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    <h4>S/ {{ financial_metrics.current_margin|floatformat:0 }}</h4>
+                                    <small>Ingresos - Costos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Análisis de Desempeño -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Análisis Integrado de Desempeño</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3 border-{% if performance_analysis.cost_efficiency == '✅ Eficiente' %}success{% else %}warning{% endif %}">
+                                <div class="card-header">Eficiencia de Costos</div>
+                                <div class="card-body">
+                                    <h4>{{ performance_analysis.cost_efficiency }}</h4>
+                                    <small>CPI = {{ pmi_metrics.cpi|floatformat:3 }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3 border-{% if performance_analysis.schedule_efficiency == '✅ En plazo' %}success{% else %}warning{% endif %}">
+                                <div class="card-header">Eficiencia de Cronograma</div>
+                                <div class="card-body">
+                                    <h4>{{ performance_analysis.schedule_efficiency }}</h4>
+                                    <small>SPI = {{ pmi_metrics.spi|floatformat:3 }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3 border-info">
+                                <div class="card-header">Progreso Físico vs Financiero</div>
+                                <div class="card-body">
+                                    <h4>{{ performance_analysis.physical_vs_financial }}</h4>
+                                    <small>Físico: {{ pmi_metrics.physical_progress|floatformat:1 }}% | Financiero: {{ financial_metrics.financial_progress|floatformat:1 }}%</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center mb-3 border-{% if performance_analysis.overall_health == '✅ Saludable' %}success{% elif performance_analysis.overall_health == '⚠️ En observación' %}warning{% else %}danger{% endif %}">
+                                <div class="card-header">Salud General del Proyecto</div>
+                                <div class="card-body">
+                                    <h4>{{ performance_analysis.overall_health }}</h4>
+                                    <small>Estado integral</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detalle de Avance Físico - ACTIVIDADES PMI -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Detalle de Avance Físico - Actividades PMI</h5>
+                    <a href="{% url 'project_activities' project.cod_projects_id %}" class="btn btn-light btn-sm">
+                        🎯 Gestionar Actividades
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if physical_detail.activities %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Actividad</th>
+                                    <th>Unidades</th>
+                                    <th>Peso</th>
+                                    <th>Progreso</th>
+                                    <th>Contribución</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in physical_detail.activities %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ activity.name }}</strong>
+                                        <br><small class="text-muted">{{ activity.unit_of_measure }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ activity.completed_units }}/{{ activity.total_units }}</small>
+                                    </td>
+                                    <td>{{ activity.weight|floatformat:1 }}%</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar {% if activity.percentage_completed >= 100 %}bg-success{% elif activity.percentage_completed >= 50 %}bg-primary{% else %}bg-warning{% endif %}" 
+                                                 style="width: {{ activity.percentage_completed }}%">
+                                                {{ activity.percentage_completed|floatformat:1 }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <strong>{{ activity.contribution|floatformat:2 }}%</strong>
+                                    </td>
+                                    <td>
+                                        {% if activity.percentage_completed >= 100 %}
+                                        <span class="badge bg-success">Completado</span>
+                                        {% elif activity.percentage_completed >= 50 %}
+                                        <span class="badge bg-primary">En Progreso</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Iniciado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-primary">
+                                <tr>
+                                    <td colspan="3"><strong>AVANCE FÍSICO TOTAL</strong></td>
+                                    <td colspan="2" class="text-end">
+                                        <strong>{{ physical_detail.total_physical_progress|floatformat:2 }}%</strong>
+                                    </td>
+                                    <td>
+                                        {% if physical_detail.weights_valid %}
+                                        <span class="badge bg-success">Pesos Válidos</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Pesos Invalidos</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No hay actividades PMI configuradas</p>
+                        <a href="{% url 'project_activities' project.cod_projects_id %}" class="btn btn-primary">
+                            🎯 Configurar Actividades PMI
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PMI Compliance Indicator -->
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="alert {% if pmi_metrics.pmi_compliant %}alert-success{% else %}alert-warning{% endif %}">
+                <h5 class="alert-heading">
+                    {% if pmi_metrics.pmi_compliant %}
+                    ✅ SISTEMA PMI COMPLIANT
+                    {% else %}
+                    ⚠️ SISTEMA NO PMI COMPLIANT
+                    {% endif %}
+                </h5>
+                <p class="mb-0">
+                    {% if pmi_metrics.pmi_compliant %}
+                    El proyecto está siendo monitoreado bajo estándares PMI para Earned Value Management.
+                    {% else %}
+                    Se requiere configuración adicional para cumplir con estándares PMI.
+                    {% endif %}
+                    | <strong>Avance calculado desde actividades reales</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

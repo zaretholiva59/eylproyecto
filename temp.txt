@@ -1,0 +1,58 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="text-primary mb-1">📊 Dashboard Ejecutivo - {{ proyecto.cod_projects_id }}</h1>
+        <p class="text-muted mb-0">Análisis integral de valor ganado y métricas de proyecto</p>
+    </div>
+  <div class="btn-group">
+    <a href="{% url 'project_dashboard' proyecto.cod_projects_id %}" 
+       class="btn btn-outline-secondary">
+        🔄 Recargar Dashboard
+    </a>
+    <a href="/projects/grid/grid-costos/{{ proyecto.cod_projects_id }}/" 
+       class="btn btn-outline-secondary">
+        ← Volver a Costos
+    </a>
+    <button class="btn btn-outline-primary" onclick="exportDashboard()">
+        📥 Exportar Reporte
+    </button>
+</div>
+
+<!-- FILA INFORMACIÓN RÁPIDA -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">BAC Planeado</h6>
+                <h4 class="mb-0">S/ {{ bac_planeado_display }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">BAC Real</h6>
+                <h4 class="mb-0">S/ {{ bac_display }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">% Ejecución</h6>
+                <h4 class="mb-0">{{ porcentaje_ejecutado|floatformat:1 }}%</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">Estado</h6>
+                <h4 class="mb-0">
+                    <span class="badge {% if estado_proyecto == 'COMPLETADO' %}bg-success{% else %}bg-light text-dark{% endif %}">
+                        {{ estado_proyecto }}
+                    </span>
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>

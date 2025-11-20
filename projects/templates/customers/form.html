@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-person-lines-fill"></i> {% if is_edit %}Editar cliente{% else %}Crear cliente{% endif %}
+          </h4>
+        </div>
+        <div class="card-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> 
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="{{ form.ruc_costumer.id_for_label }}" class="form-label">
+                    RUC <span class="text-danger">*</span>
+                    <small class="text-muted">(11 dígitos)</small>
+                  </label>
+                  {{ form.ruc_costumer }}
+                  {% if form.ruc_costumer.help_text %}
+                    <div class="form-text">{{ form.ruc_costumer.help_text }}</div>
+                  {% endif %}
+                  {% if form.ruc_costumer.errors %}
+                    <div class="invalid-feedback d-block">
+                      <i class="bi bi-exclamation-circle"></i> 
+                      {{ form.ruc_costumer.errors }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="{{ form.type_costumer.id_for_label }}" class="form-label">
+                    Tipo de cliente <span class="text-danger">*</span>
+                  </label>
+                  {{ form.type_costumer }}
+                  {% if form.type_costumer.help_text %}
+                    <div class="form-text">{{ form.type_costumer.help_text }}</div>
+                  {% endif %}
+                  {% if form.type_costumer.errors %}
+                    <div class="invalid-feedback d-block">
+                      <i class="bi bi-exclamation-circle"></i> 
+                      {{ form.type_costumer.errors }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="{{ form.com_name.id_for_label }}" class="form-label">
+                    Razón social <span class="text-danger">*</span>
+                  </label>
+                  {{ form.com_name }}
+                  {% if form.com_name.help_text %}
+                    <div class="form-text">{{ form.com_name.help_text }}</div>
+                  {% endif %}
+                  {% if form.com_name.errors %}
+                    <div class="invalid-feedback d-block">
+                      <i class="bi bi-exclamation-circle"></i> 
+                      {{ form.com_name.errors }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-4">
+                  <label for="{{ form.contac_costumer.id_for_label }}" class="form-label">
+                    Persona de contacto
+                  </label>
+                  {{ form.contac_costumer }}
+                  {% if form.contac_costumer.help_text %}
+                    <div class="form-text">{{ form.contac_costumer.help_text }}</div>
+                  {% endif %}
+                  {% if form.contac_costumer.errors %}
+                    <div class="invalid-feedback d-block">
+                      <i class="bi bi-exclamation-circle"></i> 
+                      {{ form.contac_costumer.errors }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="form-text">
+                <span class="text-danger">*</span> Campos obligatorios
+              </div>
+              <div class="btn-group">
+                <a href="{% url 'customers_list' %}" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-circle"></i> Guardar cliente
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Información adicional para edición -->
+      {% if customer and not is_create %}
+        <div class="card mt-3">
+          <div class="card-header bg-light">
+            <h6 class="mb-0">
+              <i class="bi bi-info-circle"></i> Información adicional
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-6">
+                <small class="text-muted">Creado el</small>
+                <div>{{ customer.created_at|date:"d/m/Y H:i" }}</div>
+              </div>
+              <div class="col-6">
+                <small class="text-muted">Última modificación</small>
+                <div>{{ customer.updated_at|date:"d/m/Y H:i" }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Mejorar validación del lado del cliente
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  const rucField = document.getElementById('{{ form.ruc_costumer.id_for_label }}');
+  const comNameField = document.getElementById('{{ form.com_name.id_for_label }}');
+  const contactField = document.getElementById('{{ form.contac_costumer.id_for_label }}');
+  
+  // Validación en tiempo real para RUC
+  if (rucField) {
+    rucField.addEventListener('input', function() {
+      let value = this.value.replace(/\D/g, ''); // Solo números
+      if (value.length > 11) value = value.slice(0, 11);
+      this.value = value;
+      
+      // Validar longitud
+      if (value.length > 0 && value.length !== 11) {
+        this.classList.add('is-invalid');
+      } else {
+        this.classList.remove('is-invalid');
+      }
+    });
+  }
+  
+  // Limpiar espacios múltiples en nombre de empresa
+  if (comNameField) {
+    comNameField.addEventListener('blur', function() {
+      this.value = this.value.replace(/\s+/g, ' ').trim();
+    });
+  }
+  
+  // Limpiar espacios múltiples en contacto
+  if (contactField) {
+    contactField.addEventListener('blur', function() {
+      this.value = this.value.replace(/\s+/g, ' ').trim();
+    });
+  }
+  
+  // Mostrar confirmación antes de enviar
+  form.addEventListener('submit', function(e) {
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+    submitBtn.disabled = true;
+  });
+});
+</script>
+{% endblock %}

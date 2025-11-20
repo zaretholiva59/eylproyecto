@@ -1,0 +1,30 @@
+<fieldset class="border p-3 mb-3">
+    <legend>📝 Datos Generales</legend>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label for="id_po_number" class="form-label">Número OC</label>
+            {{ form_oc.po_number }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_cost_center" class="form-label">Centro de Costo</label>
+            {{ form_oc.cost_center }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_presale" class="form-label">Código Proyecto</label>
+            {{ form_oc.presale }}
+        </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-4">{{ form_oc.issue_date.label_tag }} {{ form_oc.issue_date }}</div>
+        <div class="col-md-4">{{ form_oc.initial_delivery_date.label_tag }} {{ form_oc.initial_delivery_date }}</div>
+        <div class="col-md-4">{{ form_oc.final_delivery_date.label_tag }} {{ form_oc.final_delivery_date }}</div>
+    </div>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-4">{{ form_oc.currency.label_tag }} {{ form_oc.currency }}</div>
+        <div class="col-md-4">{{ form_oc.po_status.label_tag }} {{ form_oc.po_status }}</div>
+        <div class="col-md-4">{{ form_oc.observations.label_tag }} {{ form_oc.observations }}</div>
+    </div>
+</fieldset>

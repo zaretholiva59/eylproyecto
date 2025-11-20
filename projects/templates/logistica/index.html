@@ -1,0 +1,668 @@
+{% extends "blogis.html" %}
+{% load humanize %}
+{% block logis_content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- FILTROS -->
+<div class="row mb-4">
+    {% if active_tab == 'orders' %}
+    <div class="col-md-3">
+        <label class="form-label fw-bold">Filtrar por proyecto:</label>
+        <select id="proyecto-select" class="form-select" onchange="cambiarProyecto()">
+            <option value="">Todos los proyectos</option>
+            {% for proyecto in proyectos %}
+            <option value="{{ proyecto.cod_projects_id }}" 
+                    {% if proyecto_seleccionado and proyecto.cod_projects_id == proyecto_seleccionado.cod_projects_id %}selected{% endif %}>
+                {{ proyecto.cod_projects_id }} - {{ proyecto.cod_projects.dres_chance }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label fw-bold">Proveedor (RUC o nombre):</label>
+        <div class="input-group">
+          <input id="supplier-filter" list="supplierOptions" class="form-control" type="text" value="{{ supplier_q }}" placeholder="Buscar proveedor...">
+          <button class="btn btn-outline-secondary" onclick="applyFilters()"><i class="bi bi-search"></i></button>
+        </div>
+        <datalist id="supplierOptions">
+          {% for s in suppliers_list %}
+            <option value="{{ s.ruc_supplier }}">{{ s.name_supplier }}</option>
+            <option value="{{ s.name_supplier }}">{{ s.ruc_supplier }}</option>
+          {% endfor %}
+        </datalist>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label fw-bold">Producto (código o PN):</label>
+        <div class="input-group">
+          <input id="product-filter" list="productOptions" class="form-control" type="text" value="{{ product_q }}" placeholder="Buscar producto...">
+          <button class="btn btn-outline-secondary" onclick="applyFilters()"><i class="bi bi-search"></i></button>
+        </div>
+        <datalist id="productOptions">
+          {% for p in products_list %}
+            <option value="{{ p.code_art }}">{{ p.part_number }}</option>
+            <option value="{{ p.part_number }}">{{ p.code_art }}</option>
+          {% endfor %}
+        </datalist>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label fw-bold">Orden de compra:</label>
+        <div class="input-group">
+          <input id="po-filter" list="poOptions" class="form-control" type="text" value="{{ po_q }}" placeholder="N° OC...">
+          <button class="btn btn-outline-secondary" onclick="applyFilters()"><i class="bi bi-search"></i></button>
+        </div>
+        <datalist id="poOptions">
+          {% for po in po_list|slice:":50" %}
+            <option value="{{ po.po_number }}">{{ po.issue_date|date:"d/m/Y" }}</option>
+          {% endfor %}
+        </datalist>
+    </div>
+
+    <div class="col-12">
+      <div class="row g-2 mt-2">
+        <div class="col-6 col-md-2">
+          <label class="form-label">Status</label>
+          <select id="status-filter" class="form-select" onchange="applyFilters()">
+            <option value="">Todos</option>
+            {% for s in statuses_list %}
+              <option value="{{ s }}" {% if status_q == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label">Moneda</label>
+          <select id="currency-filter" class="form-select" onchange="applyFilters()">
+            <option value="">Todas</option>
+            {% for c in currencies_list %}
+              <option value="{{ c }}" {% if currency_q == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label">Local/Import</label>
+          <select id="local-filter" class="form-select" onchange="applyFilters()">
+            <option value="">Ambos</option>
+            <option value="LOCAL" {% if localimp_q == 'LOCAL' %}selected{% endif %}>Local</option>
+            <option value="IMPORT" {% if localimp_q == 'IMPORT' %}selected{% endif %}>Import</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label">Fabricante</label>
+          <select id="manuf-filter" class="form-select" onchange="applyFilters()">
+            <option value="">Todos</option>
+            {% for m in manuf_list %}
+              <option value="{{ m }}" {% if manuf_q == m %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Rango fechas</label>
+          <div class="input-group flex-nowrap">
+            <span class="input-group-text">De</span>
+            <input id="from-filter" type="date" class="form-control" value="{{ date_from }}">
+            <span class="input-group-text">a</span>
+            <input id="to-filter" type="date" class="form-control" value="{{ date_to }}">
+            <button class="btn btn-outline-secondary" onclick="applyFilters()" title="Aplicar"><i class="bi bi-filter"></i></button>
+            <button class="btn btn-outline-danger" onclick="clearFilters()" title="Limpiar"><i class="bi bi-x-circle"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% elif active_tab == 'suppliers' %}
+    <div class="col-md-4">
+        <label class="form-label fw-bold">Proyecto:</label>
+        <select id="proyecto-select" class="form-select" onchange="cambiarProyecto()">
+            <option value="">Todos los proyectos</option>
+            {% for proyecto in proyectos %}
+            <option value="{{ proyecto.cod_projects_id }}" 
+                    {% if proyecto_seleccionado and proyecto.cod_projects_id == proyecto_seleccionado.cod_projects_id %}selected{% endif %}>
+                {{ proyecto.cod_projects_id }} - {{ proyecto.cod_projects.dres_chance }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% elif active_tab == 'products' %}
+    <div class="col-md-4">
+        <label class="form-label fw-bold">Proyecto:</label>
+        <select id="proyecto-select" class="form-select" onchange="cambiarProyecto()">
+            <option value="">Todos los proyectos</option>
+            {% for proyecto in proyectos %}
+            <option value="{{ proyecto.cod_projects_id }}" 
+                    {% if proyecto_seleccionado and proyecto.cod_projects_id == proyecto_seleccionado.cod_projects_id %}selected{% endif %}>
+                {{ proyecto.cod_projects_id }} - {{ proyecto.cod_projects.dres_chance }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+</div>
+
+<!-- KPI CARDS -->
+<div class="table-responsive">
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="card text-bg-primary h-100">
+          <div class="card-body py-2">
+            <div class="small">Órdenes</div>
+            <div class="fs-4 fw-bold">{{ kpi_total_ocs }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-bg-success h-100">
+          <div class="card-body py-2">
+            <div class="small">Total Local (S/.)</div>
+            <div class="fs-5 fw-bold">{{ kpi_total_local|floatformat:2|intcomma }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-bg-info h-100">
+          <div class="card-body py-2">
+            <div class="small">Entregado y pagado</div>
+            <div class="fs-4 fw-bold">{{ kpi_entregado_pagado }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-bg-warning h-100">
+          <div class="card-body py-2">
+            <div class="small">Lead time promedio (días)</div>
+            <div class="fs-4 fw-bold">{{ kpi_lead_time_prom }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totales por Moneda (original de OC) -->
+    {% if currency_totals %}
+    <div class="row g-3 mb-3">
+      {% for cur, tot in currency_totals.items %}
+      <div class="col-6 col-md-3">
+        <div class="card border-0 h-100 shadow-sm">
+          <div class="card-body py-2">
+            <div class="small">Total en {{ cur }}</div>
+            <div class="fs-5 fw-bold">{{ tot }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- MENSAJES -->
+    {% if messages %}
+    <div class="mt-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- DEBUG TEMPORAL -->
+    <div class="alert alert-info mb-3">
+        🔍 Proyecto: <strong>{{ proyecto_seleccionado.cod_projects_id|default:"Ninguno" }}</strong> | 
+        OCs: <strong>{{ ocs.count }}</strong>
+    </div>
+
+    <!-- PAGINACIÓN SUPERIOR -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="small text-muted">
+        Mostrando {{ ocs_page.start_index }}-{{ ocs_page.end_index }} de {{ ocs_page.paginator.count }}
+      </div>
+      <div class="btn-group">
+        {% if ocs_page.has_previous %}
+          <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">&laquo;&laquo;</a>
+          <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ ocs_page.previous_page_number }}">&laquo;</a>
+        {% else %}
+          <span class="btn btn-outline-secondary btn-sm disabled">&laquo;&laquo;</span>
+          <span class="btn btn-outline-secondary btn-sm disabled">&laquo;</span>
+        {% endif %}
+        
+        <span class="btn btn-outline-secondary btn-sm disabled">
+          Pág. {{ ocs_page.number }} de {{ ocs_page.paginator.num_pages }}
+        </span>
+        
+        {% if ocs_page.has_next %}
+          <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ ocs_page.next_page_number }}">&raquo;</a>
+          <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ ocs_page.paginator.num_pages }}">&raquo;&raquo;</a>
+        {% else %}
+          <span class="btn btn-outline-secondary btn-sm disabled">&raquo;</span>
+          <span class="btn btn-outline-secondary btn-sm disabled">&raquo;&raquo;</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- SELECTOR DE FILAS POR PÁGINA -->
+    <div class="d-flex justify-content-end gap-2 mb-2">
+      <div class="input-group" style="width: auto;">
+        <label class="input-group-text" for="page-size">Filas</label>
+        <select id="page-size" class="form-select" onchange="setPageSize(this.value)">
+          <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+          <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+          <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+          <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 🔥 CONTENEDOR DEL GRID CON BARRAS PERSONALIZADAS -->
+    <div id="grid-master-wrapper" style="border: 1px solid #dee2e6; border-radius: 0.375rem; background: white; overflow: hidden;">
+        
+        <!-- 🔥 ÁREA PRINCIPAL: TABLA + SCROLL VERTICAL PERSONALIZADO -->
+        <div style="display: flex; max-height: 65vh;">
+            
+            <!-- TABLA CON SCROLL VERTICAL OCULTO -->
+            <div id="grid-container" style="flex: 1; overflow: hidden; position: relative;">
+                <table id="grid" class="table table-sm table-hover table-bordered align-middle mb-0">
+                    <thead class="table-dark sticky-top" style="z-index: 5;">
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th class="text-center">Mes</th>
+                            <th class="text-center">Año</th>
+                            <th>Cliente</th>
+                            <th>Proyecto</th>
+                            <th>Solicitante</th>
+                            <th>Local/Import</th>
+                            <th>
+                              <a class="text-reset text-decoration-none" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}sort={% if sort == 'po_status' %}-po_status{% else %}po_status{% endif %}">Status</a>
+                            </th>
+                            <th>OC</th>
+                            <th>Proveedor</th>
+                            <th>Fabricante</th>
+                            <th>PN</th>
+                            <th>
+                              <a class="text-reset text-decoration-none" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}sort={% if sort == 'issue_date' %}-issue_date{% else %}issue_date{% endif %}">Emisión</a>
+                            </th>
+                            <th>TE</th>
+                            <th>CECO</th>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Entrega Inicial</th>
+                            <th>Cantidad</th>
+                            <th>P.U.</th>
+                            <th>Moneda</th>
+                            <th>Subtotal</th>
+                            <th>IGV</th>
+                            <th>
+                              <a class="text-reset text-decoration-none" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}sort={% if sort == 'total_amount' %}-total_amount{% else %}total_amount{% endif %}">Total</a>
+                            </th>
+                            <th>Total Local (S/.)</th>
+                            <th>Entrega Final</th>
+                            <th class="d-none d-lg-table-cell">Observaciones</th>
+                            <th class="d-none d-xl-table-cell">Forma Pago</th>
+                            <th class="d-none d-xl-table-cell">Pagar A</th>
+                            <th>RUC</th>
+                            <th class="d-none d-xl-table-cell">Factura</th>
+                            <th class="d-none d-xl-table-cell">Fecha Factura</th>
+                            <th class="d-none d-xl-table-cell">Status Proveedor</th>
+                            <th class="d-none d-xl-table-cell">Status Factura</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for oc in ocs_page %}
+                            {% for linea in oc.podetailproduct_set.all %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ oc.issue_date|date:"m" }}</td>
+                                <td>{{ oc.issue_date|date:"Y" }}</td>
+                                <td>{{ oc.project_code.cod_projects.info_costumer.com_name }}</td>
+                                <td>{{ oc.project_code.cod_projects.cod_projects }}</td>
+                                <td>{{ oc.project_code.respon_projects.name }}</td>
+                                <td>{{ oc.local_import }}</td>
+                                <td>{{ oc.po_status }}</td>
+                                <td>{{ oc.po_number }}</td>
+                                <td>
+                                    {% with suppliers=oc.podetailsupplier_set.all %}
+                                        {% if suppliers %}
+                                            {% for prov in suppliers %}
+                                                {{ prov.supplier.name_supplier }}{% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            {% if linea.product and linea.product.ruc_supplier %}
+                                                {{ linea.product.ruc_supplier.name_supplier }}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>{{ linea.product.manufac }}</td>
+                                <td>{{ linea.product.part_number }}</td>
+                                <td>{{ oc.issue_date|date:"d/m/Y" }}</td>
+                                <td>{{ oc.te }}</td>
+                                <td>{{ oc.project_code.cost_center }}</td>
+                                <td>{{ linea.product.code_art }}</td>
+                                <td>{{ linea.product.descrip }}</td>
+                                <td>{{ oc.initial_delivery_date|date:"d/m/Y" }}</td>
+                                <td>{{ linea.quantity }}</td>
+                                <td>{{ linea.unit_price|floatformat:2|intcomma }}</td>
+                                <td>{{ oc.currency }}</td>
+                                <td>{{ linea.subtotal|floatformat:2|intcomma }}</td>
+                                <td>{{ linea.igv|floatformat:2|intcomma }}</td>
+                                <td>{{ linea.total|floatformat:2|intcomma }}</td>
+                                <td>{{ linea.local_total|floatformat:2|intcomma }}</td>
+                                <td>{{ oc.final_delivery_date|date:"d/m/Y" }}</td>
+                                <td>{{ linea.comment }}</td>
+                                <td>{{ oc.forma_pago }}</td>
+                                <td>{{ oc.pagar_a }}</td>
+                                <td>
+                                    {% with suppliers=oc.podetailsupplier_set.all %}
+                                        {% if suppliers %}
+                                            {% for prov in suppliers %}
+                                                {{ prov.supplier.ruc_supplier }}{% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            {% if linea.product and linea.product.ruc_supplier %}
+                                                {{ linea.product.ruc_supplier.ruc_supplier }}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    {% if oc.invoice %}
+                                        {{ oc.invoice.invoice_number }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if oc.invoice %}
+                                        {{ oc.invoice.issue_date|date:"d/m/Y" }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% for prov in oc.podetailsupplier_set.all %}
+                                        <select class="form-select form-select-sm d-inline-block w-auto me-2"
+                                                data-po="{{ oc.po_number }}"
+                                                data-ruc="{{ prov.supplier.ruc_supplier }}"
+                                                onchange="updateSupplierStatus(this)">
+                                            {% for opt in supplier_status_list %}
+                                                {% if opt %}
+                                                    <option value="{{ opt }}" {% if prov.supplier_status == opt %}selected{% endif %}>{{ opt }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if not prov.supplier_status %}
+                                                <option value="" selected>(sin estado)</option>
+                                            {% else %}
+                                                <option value="">(vaciar)</option>
+                                            {% endif %}
+                                        </select>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for prov in oc.podetailsupplier_set.all %}
+                                        <select class="form-select form-select-sm d-inline-block w-auto me-2"
+                                                data-po="{{ oc.po_number }}"
+                                                data-ruc="{{ prov.supplier.ruc_supplier }}"
+                                                onchange="updateContabStatus(this)">
+                                            {% for opt in status_contab_list %}
+                                                {% if opt %}
+                                                    <option value="{{ opt }}" {% if prov.status_factura_contabilidad == opt %}selected{% endif %}>{{ opt }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if not prov.status_factura_contabilidad %}
+                                                <option value="" selected>(sin estado)</option>
+                                            {% else %}
+                                                <option value="">(vaciar)</option>
+                                            {% endif %}
+                                        </select>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'purchase_order_edit' oc.po_number %}" class="btn btn-sm btn-warning">✏️</a>
+                                    <a href="{% url 'purchase_order_delete' oc.po_number %}" class="btn btn-sm btn-danger">🗑</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="34" class="text-center text-muted py-4">⚠️ No hay órdenes registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 🔥 SCROLLBAR VERTICAL PERSONALIZADA (LADO DERECHO) -->
+            <div id="custom-scrollbar-vertical" style="width: 16px; background: #f8f9fa; border-left: 1px solid #dee2e6; overflow-y: auto;">
+                <div id="scrollbar-vertical-content" style="width: 1px;"></div>
+            </div>
+            
+        </div>
+        
+        <!-- 🔥 SCROLLBAR HORIZONTAL PERSONALIZADA (PARTE INFERIOR) -->
+        <div id="custom-scrollbar-horizontal" style="height: 16px; background: #f8f9fa; border-top: 1px solid #dee2e6; overflow-x: auto;">
+            <div id="scrollbar-horizontal-content" style="height: 1px;"></div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- PAGINACIÓN INFERIOR -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+  <div class="small text-muted">
+    Mostrando {{ ocs_page.start_index }}-{{ ocs_page.end_index }} de {{ ocs_page.paginator.count }}
+  </div>
+  <div class="btn-group">
+    {% if ocs_page.has_previous %}
+      <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page=1">&laquo;&laquo;</a>
+      <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ ocs_page.previous_page_number }}">&laquo;</a>
+    {% else %}
+      <span class="btn btn-outline-secondary btn-sm disabled">&laquo;&laquo;</span>
+      <span class="btn btn-outline-secondary btn-sm disabled">&laquo;</span>
+    {% endif %}
+    
+    <span class="btn btn-outline-secondary btn-sm disabled">
+      Pág. {{ ocs_page.number }} de {{ ocs_page.paginator.num_pages }}
+    </span>
+    
+    {% if ocs_page.has_next %}
+      <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ ocs_page.next_page_number }}">&raquo;</a>
+      <a class="btn btn-outline-secondary btn-sm" href="?{% if request.GET %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ ocs_page.paginator.num_pages }}">&raquo;&raquo;</a>
+    {% else %}
+      <span class="btn btn-outline-secondary btn-sm disabled">&raquo;</span>
+      <span class="btn btn-outline-secondary btn-sm disabled">&raquo;&raquo;</span>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  /* ESTILOS GENERALES */
+  #grid th, #grid td { 
+    white-space: nowrap; 
+    font-size: 0.9rem; 
+    padding: 8px 10px; 
+  }
+  
+  @media (max-width: 1200px) { 
+    #grid .d-none.d-xl-table-cell { display: none !important; } 
+  }
+  
+  @media (max-width: 992px) { 
+    #grid .d-none.d-lg-table-cell { display: none !important; } 
+  }
+  
+  /* CONTENEDOR PRINCIPAL */
+  #grid-master-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* TABLA */
+  #grid {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+  }
+  
+  /* SCROLLBAR HORIZONTAL PERSONALIZADA */
+  #custom-scrollbar-horizontal::-webkit-scrollbar {
+    height: 12px;
+  }
+  
+  #custom-scrollbar-horizontal::-webkit-scrollbar-track {
+    background: #e9ecef;
+    border-radius: 6px;
+    margin: 0 2px;
+  }
+  
+  #custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+  }
+  
+  #custom-scrollbar-horizontal::-webkit-scrollbar-thumb:hover {
+    background: #6c757d;
+  }
+  
+  /* SCROLLBAR VERTICAL PERSONALIZADA */
+  #custom-scrollbar-vertical::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  #custom-scrollbar-vertical::-webkit-scrollbar-track {
+    background: #e9ecef;
+    border-radius: 6px;
+    margin: 2px 0;
+  }
+  
+  #custom-scrollbar-vertical::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+  }
+  
+  #custom-scrollbar-vertical::-webkit-scrollbar-thumb:hover {
+    background: #6c757d;
+  }
+  
+  /* HEADER STICKY */
+  #grid thead.sticky-top th {
+    background: #212529;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    border-bottom: 2px solid #495057;
+  }
+  
+  #grid td, #grid th {
+    border: 1px solid #dee2e6;
+  }
+  
+  /* HOVER EN FILAS */
+  #grid tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+</style>
+
+<script>
+// 🔥 SINCRONIZACIÓN COMPLETA DE SCROLLBARS
+document.addEventListener('DOMContentLoaded', function(){
+    const gridContainer = document.getElementById('grid-container');
+    const grid = document.getElementById('grid');
+    
+    // SCROLLBAR HORIZONTAL
+    const scrollbarH = document.getElementById('custom-scrollbar-horizontal');
+    const scrollbarHContent = document.getElementById('scrollbar-horizontal-content');
+    
+    // SCROLLBAR VERTICAL
+    const scrollbarV = document.getElementById('custom-scrollbar-vertical');
+    const scrollbarVContent = document.getElementById('scrollbar-vertical-content');
+    
+    function syncScrollbars() {
+        // SINCRONIZAR ANCHO (horizontal)
+        const gridWidth = grid.scrollWidth;
+        scrollbarHContent.style.width = gridWidth + 'px';
+        
+        // SINCRONIZAR ALTURA (vertical)
+        const gridHeight = grid.scrollHeight;
+        scrollbarVContent.style.height = gridHeight + 'px';
+    }
+    
+    // 🔥 SCROLL HORIZONTAL: barra → tabla
+    scrollbarH.addEventListener('scroll', function() {
+        gridContainer.scrollLeft = scrollbarH.scrollLeft;
+    });
+    
+    // 🔥 SCROLL VERTICAL: barra → tabla
+    scrollbarV.addEventListener('scroll', function() {
+        gridContainer.scrollTop = scrollbarV.scrollTop;
+    });
+    
+    // 🔥 SCROLL VERTICAL: tabla → barra (cuando usas rueda del mouse en la tabla)
+    gridContainer.addEventListener('scroll', function() {
+        scrollbarV.scrollTop = gridContainer.scrollTop;
+        scrollbarH.scrollLeft = gridContainer.scrollLeft;
+    });
+    
+    // 🔥 PERMITIR SCROLL HORIZONTAL CON SHIFT + RUEDA
+    gridContainer.addEventListener('wheel', function(e) {
+        if (e.shiftKey) {
+            e.preventDefault();
+            scrollbarH.scrollLeft += e.deltaY;
+        }
+    }, { passive: false });
+    
+    // Inicializar
+    syncScrollbars();
+    
+    // Actualizar cuando cambie el tamaño
+    window.addEventListener('resize', syncScrollbars);
+    
+    // Actualizar cuando cambie el contenido
+    const observer = new MutationObserver(syncScrollbars);
+    observer.observe(grid, {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+});
+
+// FUNCIONES DE FILTROS
+function cambiarProyecto() {
+    const select = document.getElementById('proyecto-select');
+    const proyectoId = select.value;
+    const params = new URLSearchParams(window.location.search);
+    if (proyectoId) params.set('proyecto_id', proyectoId); else params.delete('proyecto_id');
+    window.location.href = '/logis/?' + params.toString();
+}
+
+function applyFilters() {
+  const params = new URLSearchParams(window.location.search);
+  const supplier = document.getElementById('supplier-filter').value;
+  const product = document.getElementById('product-filter').value;
+  const po = document.getElementById('po-filter').value;
+  const statusV = document.getElementById('status-filter')?.value || '';
+  const currencyV = document.getElementById('currency-filter')?.value || '';
+  const localV = document.getElementById('local-filter')?.value || '';
+  const manufV = document.getElementById('manuf-filter')?.value || '';
+  const fromV = document.getElementById('from-filter')?.value || '';
+  const toV = document.getElementById('to-filter')?.value || '';
+  if (supplier) params.set('supplier', supplier); else params.delete('supplier');
+  if (product) params.set('product', product); else params.delete('product');
+  if (po) params.set('po', po); else params.delete('po');
+  if (statusV) params.set('status', statusV); else params.delete('status');
+  if (currencyV) params.set('currency', currencyV); else params.delete('currency');
+  if (localV) params.set('local', localV); else params.delete('local');
+  if (manufV) params.set('manuf', manufV); else params.delete('manuf');
+  if (fromV) params.set('from', fromV); else params.delete('from');
+  if (toV) params.set('to', toV); else params.delete('to');
+  window.location.href = '/logis/?' + params.toString();
+}
+
+function clearFilters(){
+  const params = new URLSearchParams(window.location.search);
+  ['supplier','product','po','status','currency','local','manuf','from','to','sort'].forEach(k=>params.delete(k));
+  window.location.href = '/logis/' + (params.size ? ('?'+params.toString()) : '');
+}
+
+function setSupplier(val){ document.getElementById('supplier-filter').value = val; applyFilters(); }
+function setProduct(val){ document.getElementById('product-filter').value = val; applyFilters(); }
+function setPO(val){ document.getElementById('po-filter').value = val; applyFilters(); }
+
+function setPageSize(size){
+  const params = new URLSearchParams(window.location.search);
+  params.set('page_size', size);
+  params.set('page', '1');
+  window.location.href = '/logis/?' + params.toString();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+          <h4 class="mb-0">⚠️ Confirmar Eliminación de Cliente</h4>
+        </div>
+        <div class="card-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <div class="alert alert-warning">
+            <h5><i class="bi bi-exclamation-triangle"></i> Advertencia</h5>
+            <p>Estás a punto de eliminar el siguiente cliente:</p>
+          </div>
+
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5>Información del Cliente</h5>
+              <table class="table table-sm">
+                <tr>
+                  <th>RUC:</th>
+                  <td>{{ customer.ruc_costumer }}</td>
+                </tr>
+                <tr>
+                  <th>Nombre:</th>
+                  <td>{{ customer.com_name }}</td>
+                </tr>
+                <tr>
+                  <th>Tipo:</th>
+                  <td>{{ customer.get_type_costumer_display }}</td>
+                </tr>
+                <tr>
+                  <th>Contacto:</th>
+                  <td>{{ customer.contac_costumer|default:"Sin contacto registrado" }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          {% if has_chances or has_projects %}
+            <div class="alert alert-danger">
+              <h5><i class="bi bi-x-circle"></i> No se puede eliminar</h5>
+              <p>Este cliente no puede ser eliminado porque tiene las siguientes relaciones activas:</p>
+              <ul>
+                {% if has_chances %}
+                  <li><strong>Oportunidades:</strong> Tiene oportunidades registradas</li>
+                {% endif %}
+                {% if has_projects %}
+                  <li><strong>Proyectos:</strong> Tiene proyectos asociados</li>
+                {% endif %}
+              </ul>
+              <p class="mb-0">Para eliminar este cliente, primero debe eliminar o reasignar estas relaciones.</p>
+            </div>
+            
+            <div class="d-flex gap-2">
+              <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-primary">
+                <i class="bi bi-eye"></i> Ver Cliente
+              </a>
+              <a href="{% url 'customers_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a la lista
+              </a>
+            </div>
+          {% else %}
+            <div class="alert alert-info">
+              <h5><i class="bi bi-info-circle"></i> Información</h5>
+              <p>Este cliente no tiene relaciones activas y puede ser eliminado de forma segura.</p>
+            </div>
+            
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                  <i class="bi bi-trash"></i> Sí, eliminar cliente
+                </button>
+                <a href="{% url 'customers_list' %}" class="btn btn-secondary">
+                  <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+              </div>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

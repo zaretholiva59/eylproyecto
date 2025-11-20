@@ -12,10 +12,13 @@ activity_states = [
 ]
 
 oc_state = [
-    ("Pendiente", "Pendiente"),
-    ("Parcial", "Parcial"),
-    ("Completada", "Completada"),
-    ("Cancelada", "Cancelada"),
+    ("PENDIENTE", "Pendiente"),
+    ("APROBADO", "Aprobado"),
+    ("EN_PROCESO", "En Proceso"),
+    ("ENTREGADO - PAGO PENDIENTE", "Entregado - Pago Pendiente"),
+    ("ENTREGADO Y PAGADO", "Entregado y Pagado"),
+    ("SERVICIO", "Servicio"),
+    ("CANCELADO", "Cancelado"),
 ]
 
 currency = [
@@ -54,3 +57,33 @@ approval_stats = [
     ("Rechazado", "Rechazado"),
     ("Revision", "En Revisión"),
 ]
+
+
+ES_GR = [
+            ('pending', 'Pending Reception'),
+            ('partial', 'Partial Reception'), 
+            ('complete', 'Complete Reception'),
+        ],
+
+STATUS_MAPPING = {
+            'BORRADOR': 'PENDING',
+            'EMITIDA': 'PENDING', 
+            'PAGO_REPORTADO': 'PENDING',
+            'PAGO_VERIFICADO': 'PAID',
+            'PAGADA': 'PAID',
+            'VENCIDA': 'OVERDUE',
+            'PAGO_NO_RECIBIDO': 'PROBLEM',
+            'CONTROVERSIA': 'PROBLEM'
+        }
+status_mapping = STATUS_MAPPING
+INVOICE_STATUS = [
+        ('BORRADOR', '📝 Borrador'),
+        ('EMITIDA', '✅ Factura Emitida'),
+        ('PAGO_REPORTADO', '🟡 Pago Reportado por Cliente'),
+        ('PAGO_VERIFICADO', '🔵 Pago Verificado en Banco'), 
+        ('PAGADA', '💰 Pagada Confirmada'),
+        ('VENCIDA', '❌ Vencida'),
+        ('PAGO_NO_RECIBIDO', '🚨 Pago No Recibido'),
+        ('CONTROVERSIA', '⚖️ En Controversia'),
+    ]
+    

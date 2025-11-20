@@ -1,0 +1,82 @@
+<div class="dashboard-header mb-4">
+    <div class="header-left">
+        <h1 class="dashboard-title text-primary">
+            <span class="title-icon">📊</span>
+            Dashboard Ejecutivo
+        </h1>
+        
+        <!-- Fila: nombre del proyecto a la izquierda y dropdown a la derecha -->
+        <div class="project-row">
+            <div class="project-meta">
+                <span class="badge id-badge">{{ proyecto.cod_projects_id }}</span>
+                {% if proyecto.cod_projects.dres_chance %}
+                    {% with name=proyecto.cod_projects.dres_chance %}
+                        <span class="project-name" title="{{ name }}">{{ name }}</span>
+                    {% endwith %}
+                {% elif proyecto.cod_projects.presale.job_name %}
+                    {% with name=proyecto.cod_projects.presale.job_name %}
+                        <span class="project-name" title="{{ name }}">{{ name }}</span>
+                    {% endwith %}
+                {% endif %}
+            </div>
+
+            <select id="projectSelector" class="form-select project-select" style="width:260px;margin-left:auto;display:inline-block" onchange="cambiarProyecto(this.value)">
+                {% for proy in todos_proyectos %}
+                    <option value="{{ proy.cod_projects_id }}" {% if proyecto.cod_projects_id == proy.cod_projects_id %}selected{% endif %}>
+                        {{ proy.cod_projects_id }}{% if proy.cod_projects.dres_chance %} - {{ proy.cod_projects.dres_chance }}{% elif proy.cod_projects.presale.job_name %} - {{ proy.cod_projects.presale.job_name }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <p class="text-muted mb-0 small">Análisis integral de valor ganado y métricas de proyecto</p>
+    </div>
+
+    <div class="header-controls">
+        <div class="btn-group header-actions">
+            <a href="{% url 'project_dashboard' proyecto.cod_projects_id %}" class="btn btn-outline-secondary">Recargar</a>
+            <a href="{% url 'grid_costos' proyecto.cod_projects_id %}" class="btn btn-outline-secondary">Costos</a>
+            <a href="{% url 'excel_grid' %}?proyecto_id={{ proyecto.cod_projects_id }}" class="btn btn-outline-primary">Exportar</a>
+        </div>
+    </div>
+</div>
+
+<!-- FILA INFORMACIÓN RÁPIDA -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">BAC Planeado</h6>
+                <h4 class="mb-0">S/ {{ bac_planeado_display }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">BAC Real</h6>
+                <h4 class="mb-0">S/ {{ bac_display }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">% Ejecución</h6>
+                <h4 class="mb-0">{{ porcentaje_ejecutado|floatformat:1 }}%</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body py-3">
+                <h6 class="card-title">Estado</h6>
+                <h4 class="mb-0">
+                    <span class="badge {% if estado_proyecto == 'COMPLETADO' %}bg-success{% else %}bg-light text-dark{% endif %}">
+                        {{ estado_proyecto }}
+                    </span>
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>

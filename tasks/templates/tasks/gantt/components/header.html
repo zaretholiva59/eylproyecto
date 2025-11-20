@@ -1,0 +1,36 @@
+<div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+    <div class="container mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-white/20 p-3 rounded-lg">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">Diagrama de Gantt</h1>
+                    <p class="text-blue-100 text-sm">{{ project.cod_projects|default:"Todos los proyectos" }}</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- Dropdown Filtro por Proyecto -->
+                <select onchange="filtrarPorProyecto(this.value)" class="px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="" class="text-gray-800">📊 Todos los proyectos</option>
+                    {% for proj in projects %}
+                        <option value="{{ proj.cod_projects_id }}" class="text-gray-800" {% if project and project.cod_projects_id == proj.cod_projects_id %}selected{% endif %}>
+                            {{ proj.display_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                
+                <button onclick="abrirModalNuevaTarea()" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Nueva Tarea</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

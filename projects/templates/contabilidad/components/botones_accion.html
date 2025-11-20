@@ -1,0 +1,12 @@
+<!--- Botones de acci�n condicionales por rol --> 
+{% if factura.status == 'EMITIDA' and not es_jefe %} 
+    <a href="{% url 'contabilidad:reportar_pago' factura.id %}" class="btn btn-sm btn-primary"> 
+        📞 Reportar Pago 
+    </a> 
+{% elif factura.status == 'PAGO_REPORTADO' and es_jefe %} 
+    <a href="{% url 'contabilidad:verificar_pago' factura.id %}" class="btn btn-sm btn-success"> 
+        ✅ Verificar Pago 
+    </a> 
+{% elif factura.status == 'PAGADA' %} 
+    <span class="text-success">✓ Completada</span> 
+{% endif %} 

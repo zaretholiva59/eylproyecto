@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Título superior fuera del box -->
+  <div class="d-flex align-items-center gap-2 mb-2 col-md-10 col-lg-11 mx-auto">
+    <span class="title-icon">📊</span>
+    <h2 class="text-light mb-0">Costos Variables</h2>
+  </div>
+  <p class="text-light mb-3 small opacity-75 col-md-10 col-lg-11 mx-auto">Análisis de costos variables del proyecto</p>
+
+  <!-- Box: solo nombre del proyecto y dropdown -->
+  <div class="bg-dark text-white p-4 rounded-3 mb-4 shadow col-md-10 col-lg-11 mx-auto">
+      <div class="d-flex align-items-center gap-3 w-100">
+      <h1 class="dashboard-title text-light mb-0">
+        {% if proyecto %}
+          {% if proyecto.cod_projects.dres_chance %}
+            {% with name=proyecto.cod_projects.dres_chance %}
+              <span class="text-white">
+                {% if proyecto.cod_projects_id in name %}
+                  {{ name }}
+                {% else %}
+                  {{ name }} - {{ proyecto.cod_projects_id }}
+                {% endif %}
+              </span>
+            {% endwith %}
+          {% elif proyecto.cod_projects.presale.job_name %}
+            {% with name=proyecto.cod_projects.presale.job_name %}
+              <span class="text-white">
+                {% if proyecto.cod_projects_id in name %}
+                  {{ name }}
+                {% else %}
+                  {{ name }} - {{ proyecto.cod_projects_id }}
+                {% endif %}
+              </span>
+            {% endwith %}
+          {% else %}
+            <span class="text-white">{{ proyecto.cod_projects_id }}</span>
+          {% endif %}
+        {% else %}
+          <span class="text-muted">Seleccione proyecto</span>
+        {% endif %}
+      </h1>
+      {% if proyectos %}
+<select id="proyectoSelectHeader" class="form-select bg-dark text-white border-secondary ms-auto" onchange="window.location.href='/grid/grid-costos/' + this.value + '/'">        {% for p in proyectos %}
+          {% if p.cod_projects.dres_chance %}
+            {% with pname=p.cod_projects.dres_chance %}
+              <option value="{{ p.cod_projects_id }}" {% if proyecto and p.cod_projects_id == proyecto.cod_projects_id %}selected{% endif %}>
+                {% if p.cod_projects_id in pname %}
+                  {{ pname }}
+                {% else %}
+                  {{ pname }} - {{ p.cod_projects_id }}
+                {% endif %}
+              </option>
+            {% endwith %}
+          {% elif p.cod_projects.presale.job_name %}
+            {% with pname=p.cod_projects.presale.job_name %}
+              <option value="{{ p.cod_projects_id }}" {% if proyecto and p.cod_projects_id == proyecto.cod_projects_id %}selected{% endif %}>
+                {% if p.cod_projects_id in pname %}
+                  {{ pname }}
+                {% else %}
+                  {{ pname }} - {{ p.cod_projects_id }}
+                {% endif %}
+              </option>
+            {% endwith %}
+          {% else %}
+            <option value="{{ p.cod_projects_id }}" {% if proyecto and p.cod_projects_id == proyecto.cod_projects_id %}selected{% endif %}>{{ p.cod_projects_id }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      {% endif %}
+    </div>
+</div>
+
+  
+  
+
+  {% if proyecto %}
+
+
+  <div class="text-center my-4">
+    <a href="{% url 'excel_grid' %}?proyecto_id={{ proyecto.cod_projects_id }}" class="btn btn-success">⬇ Exportar Todo a Excel</a>
+  </div>
+
+  <!-- Resumen superior - CORREGIDO FORMATO -->
+  <div class="row mb-4 text-center">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <h6 class="text-muted">Centro de Costo</h6>
+        <h5 class="fw-bold">{{ proyecto.cost_center }}</h5>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <h6 class="text-muted">BAC (S/.)</h6>
+        <h5 class="fw-bold text-primary">{{ bac|intcomma }}</h5>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <h6 class="text-muted">AC (Costo Actual)</h6>
+        <h5 class="fw-bold text-success">{{ ac|intcomma }}</h5>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <h6 class="text-muted">Total Facturado</h6>
+        <h5 class="fw-bold text-info">{{ facturado|intcomma }}</h5>
+      </div>
+    </div>
+  </div>
+
+  {% if currency_totals %}
+  <!-- Totales por Moneda -->
+  <div class="row mb-4 text-center">
+    {% for cur, tot in currency_totals.items %}
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 p-3">
+        <h6 class="text-muted">Total en {{ cur }}</h6>
+        <h5 class="fw-bold">{{ tot|floatformat:2|intcomma }}</h5>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Tabla de órdenes -->
+  <div class="card shadow border-0 rounded-4">
+    <div class="card-body p-4">
+      <!-- 🔥 CONTENEDOR DEL GRID CON BARRAS PERSONALIZADAS -->
+      <div id="grid-master-wrapper" style="border: 1px solid #dee2e6; border-radius: 0.375rem; background: white; overflow: hidden;">
+        <!-- 🔥 ÁREA PRINCIPAL: TABLA + SCROLL VERTICAL PERSONALIZADO -->
+        <div style="display: flex; max-height: 65vh;">
+          <!-- TABLA CON SCROLL VERTICAL OCULTO -->
+          <div id="grid-container" style="flex: 1; overflow: hidden; position: relative;">
+            <table id="grid" class="table table-hover align-middle text-center mb-0" style="border-collapse: collapse; width: max-content; min-width: 100%;">
+              <thead class="table-primary text-dark sticky-top" style="z-index: 5;">
+            <tr>
+              <th>Categoría</th>
+              <th>Cod. Proyecto</th>
+              <th>Centro de Costos</th>
+              <th>Cod. Producto</th>
+              <th>PN</th>
+              <th>Detalle</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>S/N</th>
+              <th>Metrado</th>
+              <th>UND</th>
+              <th>Costo Unitario</th>
+              <th>Moneda</th>
+              <th>Costo Total</th>
+              <th>T.C.</th>
+              <th>S/.</th>
+              <th>Proveedor</th>
+              <th>Orden de Compra</th>
+              <th>Fecha de Orden</th>
+              <th>GR</th>
+              <th>Fecha Guía</th>
+              <th>N° Comprobante</th>
+              <th>F. Factura</th>
+              <th>Comentarios</th>
+            </tr>
+              </thead>
+              <tbody>
+            {% for orden in ordenes %}
+            <tr>
+              <td>{{ orden.categoria }}</td>
+              <td>{{ orden.cod_projects }}</td>
+              <td>{{ orden.cost_center }}</td>
+              <td>{{ orden.cod_art }}</td>
+              <td>{{ orden.part_number }}</td>
+              <td>{{ orden.descrip }}</td>
+              <td>{{ orden.manufac }}</td>
+              <td>{{ orden.model }}</td>
+              <td>{{ orden.sn }}</td>
+              <td>{{ orden.quantity }}</td>
+              <td>{{ orden.measurement_unit }}</td>
+              <td>{{ orden.unit_price|floatformat:2|intcomma }}</td>
+              <td>{{ orden.currency }}</td>
+              <td class="fw-bold text-success">{{ orden.total|floatformat:2|intcomma }}</td>
+              <td>{{ orden.exchange_rate|floatformat:2|intcomma }}</td>
+              <td class="fw-bold text-success">{{ orden.local_total|floatformat:2|intcomma }}</td>
+              <td>{{ orden.name_supplier }}</td>
+              <td>{{ orden.po_number }}</td>
+              <td>{{ orden.issue_date }}</td>
+              <td>{{ orden.guide_number }}</td>
+              <td>{{ orden.guide_date }}</td>
+              <td>{{ orden.invoice_number }}</td>
+              <td>{{ orden.invoice_date }}</td>
+              <td>{{ orden.comment }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="24" class="text-center text-muted">
+                ⚠️ No hay órdenes de compra registradas para este proyecto.
+              </td>
+            </tr>
+            {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <!-- SCROLLBAR VERTICAL -->
+          <div id="custom-scrollbar-vertical" style="width: 14px; overflow-y: auto; overflow-x: hidden;">
+            <div id="scrollbar-vertical-content" style="width: 1px;"></div>
+          </div>
+        </div>
+        <!-- SCROLLBAR HORIZONTAL -->
+        <div id="custom-scrollbar-horizontal" style="height: 14px; overflow-x: auto; overflow-y: hidden;">
+          <div id="scrollbar-horizontal-content" style="height: 1px;"></div>
+        </div>
+      </div>
+      <!-- ESTILOS PERSONALIZADOS PARA EL GRID -->
+      <style>
+        #grid th, #grid td { white-space: nowrap; font-size: 0.9rem; padding: 8px 10px; }
+        #grid thead.sticky-top th { position: sticky; top: 0; z-index: 5; }
+        #grid tbody tr:hover { background-color: #f8f9fa; }
+        /* SCROLLBAR HORIZONTAL */
+        #custom-scrollbar-horizontal::-webkit-scrollbar { height: 12px; }
+        #custom-scrollbar-horizontal::-webkit-scrollbar-track { background: #e9ecef; border-radius: 6px; margin: 0 2px; }
+        #custom-scrollbar-horizontal::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 6px; border: 2px solid #e9ecef; }
+        #custom-scrollbar-horizontal::-webkit-scrollbar-thumb:hover { background: #6c757d; }
+        /* SCROLLBAR VERTICAL */
+        #custom-scrollbar-vertical::-webkit-scrollbar { width: 12px; }
+        #custom-scrollbar-vertical::-webkit-scrollbar-track { background: #e9ecef; border-radius: 6px; margin: 2px 0; }
+        #custom-scrollbar-vertical::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 6px; border: 2px solid #e9ecef; }
+        #custom-scrollbar-vertical::-webkit-scrollbar-thumb:hover { background: #6c757d; }
+      </style>
+      <!-- SINCRONIZACIÓN DE SCROLLBARS -->
+      <script>
+        document.addEventListener('DOMContentLoaded', function(){
+          const gridContainer = document.getElementById('grid-container');
+          const grid = document.getElementById('grid');
+          const scrollbarH = document.getElementById('custom-scrollbar-horizontal');
+          const scrollbarHContent = document.getElementById('scrollbar-horizontal-content');
+          const scrollbarV = document.getElementById('custom-scrollbar-vertical');
+          const scrollbarVContent = document.getElementById('scrollbar-vertical-content');
+
+          function syncScrollbars() {
+            scrollbarHContent.style.width = grid.scrollWidth + 'px';
+            scrollbarVContent.style.height = grid.scrollHeight + 'px';
+          }
+
+          scrollbarH.addEventListener('scroll', function() { gridContainer.scrollLeft = scrollbarH.scrollLeft; });
+          scrollbarV.addEventListener('scroll', function() { gridContainer.scrollTop = scrollbarV.scrollTop; });
+          gridContainer.addEventListener('scroll', function() {
+            scrollbarV.scrollTop = gridContainer.scrollTop;
+            scrollbarH.scrollLeft = gridContainer.scrollLeft;
+          });
+          gridContainer.addEventListener('wheel', function(e) {
+            if (e.shiftKey) { e.preventDefault(); scrollbarH.scrollLeft += e.deltaY; }
+          }, { passive: false });
+
+          syncScrollbars();
+          window.addEventListener('resize', syncScrollbars);
+          const observer = new MutationObserver(syncScrollbars);
+          observer.observe(grid, { childList: true, subtree: true, characterData: true });
+        });
+      </script>
+    </div>
+  </div>
+
+  <!-- Cuadro final: Facturación por OC y Mes -->
+  <div class="card shadow border-0 rounded-4 mt-5">
+    <div class="card-body p-4">
+      <h4 class="fw-bold text-center mb-4">💰 Facturación por OC y Mes</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered text-center">
+          <thead class="table-warning text-dark">
+            <tr>
+              <th>Mes</th>
+              <th>Monto Facturado (S/.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in facturacion_oc_mes %}
+            <tr>
+              <td>{{ f.mes }}</td>
+              <td class="fw-bold text-success">{{ f.total|floatformat:2|intcomma }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="text-center text-muted">
+                ⚠️ No hay registros de facturación por OC.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- TEMPLATE VACÍO -->
+  <div class="text-center py-5">
+    <div class="card shadow border-0 rounded-4 p-5">
+      <h3 class="text-muted mb-4">📋 Selecciona un proyecto</h3>
+      <p class="text-muted">Por favor, selecciona un proyecto del dropdown para ver sus costos variables.</p>
+      <div class="mt-4">
+        <div class="row mb-4 text-center">
+          <div class="col-md-3">
+            <div class="card shadow-sm border-0 p-3 bg-light">
+              <h6 class="text-muted">Centro de Costo</h6>
+              <h5 class="fw-bold">-</h5>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card shadow-sm border-0 p-3 bg-light">
+              <h6 class="text-muted">BAC (S/.)</h6>
+              <h5 class="fw-bold text-muted">0.00</h5>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card shadow-sm border-0 p-3 bg-light">
+              <h6 class="text-muted">AC (Costo Actual)</h6>
+              <h5 class="fw-bold text-muted">0.00</h5>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card shadow-sm border-0 p-3 bg-light">
+              <h6 class="text-muted">Total Facturado</h6>
+              <h5 class="fw-bold text-muted">0.00</h5>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-4 text-center">
+    <a href="{% url 'grid' %}" class="btn btn-secondary">⬅ Volver al inicio</a>
+  </div>
+</div>
+
+<!-- El dropdown funcional permanece en el header con su onchange -->
+{% endblock %}

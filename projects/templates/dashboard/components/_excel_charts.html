@@ -1,0 +1,99 @@
+<div class="card border-0 shadow-sm h-100"> 
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <h5 class="mb-0 me-2">Gráfico Ejecutivo</h5>
+            <button class="btn btn-sm btn-light me-2" onclick="toggleTablaResumen()" title="Ver tabla resumen">📋</button>
+            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#resumenFormulasExec" aria-expanded="false" aria-controls="resumenFormulasExec" title="Ver resumen de fórmulas">∑</button>
+        </div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-light active" onclick="showExcelView('avance', event)">Avance</button>
+            <button class="btn btn-outline-light" onclick="showExcelView('costos', event)">Costos</button>
+            <button class="btn btn-outline-light" onclick="showExcelView('eficiencia', event)">Eficiencia</button>
+        </div>
+    </div>
+    <div class="card-body"> 
+        <div id="excel-avance" class="chart-view"> 
+            <canvas id="avanceChart" height="250"></canvas> 
+        </div> 
+        <div id="excel-costos" class="chart-view" style="display: none;"> 
+            <canvas id="costosChart" height="250"></canvas> 
+        </div> 
+        <div id="excel-eficiencia" class="chart-view" style="display: none;"> 
+            <canvas id="eficienciaChart" height="250"></canvas> 
+        </div>
+
+        <!-- Resumen de Fórmulas - Solo valores actuales -->
+        <div class="collapse mt-3" id="resumenFormulasExec">
+            <div class="card card-body border-0 shadow-sm">
+                <h6 class="text-success mb-3">RESUMEN DE VALORES ACTUALES</h6>
+
+                <!-- Valores actuales calculados dinámicamente -->
+                <hr class="my-3">
+                <h6 class="text-success mb-2">VALORES ACTUALES</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1 fw-semibold">Montos principales</p>
+                        <ul class="small mb-3">
+                            <li>Monto Contractual: <span id="valMontoContractual">-</span></li>
+                            <li>Costo Total (BAC Planeado): <span id="valBacPlaneado">-</span></li>
+                            <li>AC JTD (Costos reales): <span id="valAcJtd">-</span></li>
+                            <li>Facturación a la fecha: <span id="valFacturadoCliente">-</span></li>
+                        </ul>
+
+                        <p class="mb-1 fw-semibold">Porcentajes</p>
+                        <ul class="small mb-3">
+                            <li>% Completado: <span id="valPctCompletado">-</span></li>
+                            <li>% Avance Facturación: <span id="valPctAvanceFact">-</span></li>
+                            <li>Eficiencia Global: <span id="valEficienciaGlobal">-</span></li>
+                            <li>Total Horas: <span id="valTotalHoras">-</span></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 fw-semibold">Distribución de costos (Presale)</p>
+                        <ul class="small mb-3">
+                            <li>Materiales: <span id="valCostoMateriales">-</span></li>
+                            <li>Servicios H-h: <span id="valCostoServicios">-</span></li>
+                            <li>Subcontratado: <span id="valCostoSubcontratado">-</span></li>
+                            <li>Gastos Generales: <span id="valCostoGastos">-</span></li>
+                            <li>Status Componentes: <span id="valStatusComponentes">-</span> <small class="text-muted" id="valDiferenciaComponentes"></small></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+</div> 
+
+<!-- Modal: Grid ejecutivo -->
+<div class="modal fade" id="excelInfoModal" tabindex="-1" aria-labelledby="excelInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="excelInfoModalLabel">Grid ejecutivo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead class="table-light">
+              <tr>
+                <th>Mes</th>
+                <th>Facturación</th>
+                <th>Costos</th>
+                <th>Avance (%)</th>
+                <th>Eficiencia (%)</th>
+                <th>Acumulado Trimestral</th>
+              </tr>
+            </thead>
+            <tbody id="corporativo_grid_body">
+              <!-- Filas generadas por JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

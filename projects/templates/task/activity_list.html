@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Actividades - {{ project.cod_projects_id }} - {{ project.cod_projects.dres_chance }}{% endblock %}
+
+{% block content %}
+<div class="activity-management">
+    <h3>🎯 Gestión de Actividades - PMI Compliant</h3>
+    
+    <!-- Resumen PMI -->
+    <div class="pmi-summary">
+        <div class="alert alert-info">
+            <strong>Avance Físico Total: {{ physical_progress }}%</strong>
+            | EV Calculado: ${{ ev_calculated|floatformat:2 }}
+            | PMI Compliant: ✅
+        </div>
+    </div>
+    
+    <!-- Formulario nueva actividad -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>➕ Agregar Nueva Actividad</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'add_project_activity' project.cod_projects_id %}">
+                {% csrf_token %}
+                <!-- Campos para nombre, descripción, unidades, criterios -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="text" name="name" class="form-control" placeholder="Nombre actividad" required>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="total_units" class="form-control" placeholder="Total unidades" min="1" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="unit_of_measure" class="form-control" placeholder="Unidad (puntos, equipos...)" required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-success w-100">Agregar Actividad</button>
+                    </div>
+                </div>
+                
+                <!-- Criterios PMI -->
+                <div class="row mt-2">
+                    <div class="col-md-4">
+                        <label>Complejidad (1-5):</label>
+                        <select name="complexity" class="form-control" required>
+                            <option value="1">1 - Básico</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3 - Medio</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Avanzado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Esfuerzo (1-5):</label>
+                        <select name="effort" class="form-control" required>
+                            <option value="1">1 - Bajo</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3 - Medio</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Alto</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Impacto (1-5):</label>
+                        <select name="impact" class="form-control" required>
+                            <option value="1">1 - Bajo</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3 - Medio</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Crítico</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Descripción -->
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <textarea name="description" class="form-control" placeholder="Descripción de la actividad (opcional)" rows="2"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lista de actividades existentes -->
+    <div class="card">
+        <div class="card-header">
+            <h5>📊 Actividades del Proyecto</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Actividad</th>
+                        <th>Peso</th>
+                        <th>Unidades</th>
+                        <th>Completado</th>
+                        <th>Contribución</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in activities %}
+                    <tr>
+                        <td>
+                            <strong>{{ activity.name }}</strong>
+                            <br><small class="text-muted">{{ activity.unit_of_measure }}</small>
+                            {% if activity.description %}
+                            <br><small class="text-info">{{ activity.description|truncatechars:50 }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ activity.calculated_weight }}%</td>
+                        <td>
+                            <form method="post" action="{% url 'update_activity_units' activity.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <div class="input-group input-group-sm">
+                                    <input type="number" name="completed_units" value="{{ activity.completed_units }}" 
+                                           min="0" max="{{ activity.total_units }}" class="form-control">
+                                    <span class="input-group-text">/ {{ activity.total_units }}</span>
+                                    <button type="submit" class="btn btn-outline-primary">✓</button>
+                                </div>
+                            </form>
+                        </td>
+                        <td>{{ activity.percentage_completed }}%</td>
+                        <td>
+                            {% widthratio activity.calculated_weight 1 activity.percentage_completed as contribution %}
+                            {{ contribution|floatformat:2 }}%
+                        </td>
+                        <td>
+                            <a href="{% url 'delete_activity' activity.id %}" class="btn btn-danger btn-sm" 
+                               onclick="return confirm('¿Eliminar actividad?')">🗑️</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No hay actividades registradas. Agrega la primera actividad arriba.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-primary">
+                    <tr>
+                        <td colspan="3"><strong>TOTAL</strong></td>
+                        <td colspan="2"><strong>Avance Físico: {{ physical_progress }}%</strong></td>
+                        <td>
+                            <form method="post" action="{% url 'recalculate_weights' project.cod_projects_id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-sm">🔄 Recalcular Pesos</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Información adicional -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>ℹ️ Información PMI</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>📋 Criterios de Peso:</h6>
+                    <ul>
+                        <li><strong>Complejidad:</strong> Nivel técnico requerido (1=Básico, 5=Avanzado)</li>
+                        <li><strong>Esfuerzo:</strong> Recursos necesarios (1=Bajo, 5=Alto)</li>
+                        <li><strong>Impacto:</strong> Importancia para el proyecto (1=Bajo, 5=Crítico)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>🎯 Cálculo PMI:</h6>
+                    <ul>
+                        <li><strong>Peso:</strong> (Comp + Esf + Imp) / Total × 100%</li>
+                        <li><strong>Avance:</strong> Σ(Peso × % Completado) / 100</li>
+                        <li><strong>EV:</strong> BAC × Avance Físico</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.activity-management {
+    padding: 20px;
+}
+
+.pmi-summary .alert {
+    margin-bottom: 20px;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.input-group-sm .form-control {
+    font-size: 0.875rem;
+}
+
+.card-header h5 {
+    margin: 0;
+    color: #495057;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

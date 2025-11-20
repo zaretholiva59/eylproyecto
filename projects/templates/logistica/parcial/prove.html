@@ -1,0 +1,22 @@
+<fieldset class="border p-3 mb-3">
+    <legend>🏭 Proveedores</legend>
+
+    {{ formset_suppliers.management_form }}
+    <div id="proveedores-container">
+        {% for form in formset_suppliers %}
+            <div class="row g-2 mb-2 form-row">
+                <div class="col-md-4">
+                    {{ form.supplier }}  <!-- hidden -->
+                    {{ form.supplier_name }} <!-- visible con autocomplete -->
+                </div>
+                <div class="col-md-3">{{ form.supplier_amount.label_tag }} {{ form.supplier_amount }}</div>
+                <div class="col-md-3">{{ form.delivery_date.label_tag }} {{ form.delivery_date }}</div>
+                <div class="col-md-2">{{ form.supplier_status.label_tag }} {{ form.supplier_status }}</div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger remove-supplier">🗑</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" class="btn btn-sm btn-primary mt-2" id="add-proveedor">➕ Agregar Proveedor</button>
+</fieldset>

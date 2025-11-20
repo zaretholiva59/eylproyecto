@@ -1,0 +1,151 @@
+{% extends "contabilidad/base_contabilidad.html" %}
+{% load formatting %}
+
+{% block title %}Verificación Bancaria - Jefe Contabilidad{% endblock %}
+{% block page_title %}🏦 Verificación Bancaria{% endblock %}
+
+{% block sidebar %}
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:jefe_dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" href="{% url 'contabilidad:verificacion_bancaria_simple' %}">
+        <i class="bi bi-bank"></i> Verificación Bancaria
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:factura_cliente_list' %}">
+        <i class="bi bi-receipt-cutoff"></i> Todas las Facturas
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:reportes_contables' %}">
+        <i class="bi bi-graph-up"></i> Reportes Ejecutivos
+    </a>
+</li>
+{% endblock %}
+
+{% block header_buttons %}
+<div class="btn-group me-2">
+    <a href="{% url 'contabilidad:jefe_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Resumen -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h5 class="card-title">🟡 Pendientes</h5>
+                <h2 class="text-warning">{{ total_pendientes }}</h2>
+                <p class="card-text">Facturas por verificar</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-body">
+                <h5 class="card-title">💰 Monto Total</h5>
+                <h2 class="text-info">S/ {{ monto_total_pendiente|currency_pe }}</h2>
+                <p class="card-text">En verificación</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <h5 class="card-title">⏰ Urgencia</h5>
+                <h2 class="text-success">{% if total_pendientes > 3 %}ALTA{% else %}MEDIA{% endif %}</h2>
+                <p class="card-text">Nivel de atención</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Facturas Pendientes -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">📋 Facturas Pendientes de Verificación Bancaria</h5>
+    </div>
+    <div class="card-body">
+        {% if facturas_pendientes %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Factura</th>
+                        <th>Proyecto</th>
+                        <th>Monto</th>
+                        <th>Reportado por</th>
+                        <th>Fecha Reporte</th>
+                        <th>Días Espera</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for factura in facturas_pendientes %}
+                    <tr class="{% if factura.dias_espera > 3 %}table-warning{% endif %}">
+                        <td>
+                            <strong>{{ factura.invoice_number }}</strong>
+                            {% if factura.invoice_file %}
+                            <br>
+                            <a href="{{ factura.invoice_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="bi bi-file-pdf"></i> Ver PDF
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>{{ factura.project.cod_projects_id }} - {{ factura.project.cod_projects.dres_chance }}</td>
+                        <td>S/ {{ factura.amount|currency_pe }}</td>
+                        <!-- Fix: manejar reported_by nulo sin errores -->
+                        <td>
+                            {% if factura.reported_by %}
+                                {{ factura.reported_by.get_full_name|default:factura.reported_by.username }}
+                            {% else %}
+                                <span class="text-muted">Sin responsable</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ factura.payment_reported_date|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if factura.dias_espera > 14 %}
+                                <span class="badge bg-danger">{{ factura.dias_espera }} días</span>
+                            {% elif factura.dias_espera >= 7 %}
+                                <span class="badge" style="background-color:#fd7e14;color:#fff">{{ factura.dias_espera }} días</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ factura.dias_espera }} días</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="factura_id" value="{{ factura.id }}">
+                                <button type="submit" name="accion" value="verificar" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-circle"></i> Verificar
+                                </button>
+                                <button type="submit" name="accion" value="problema" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-x-circle"></i> Problema
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-check-circle display-1 text-success"></i>
+            <h4 class="mt-3 text-success">¡Excelente!</h4>
+            <p class="text-muted">No hay facturas pendientes de verificación bancaria</p>
+            <a href="{% url 'contabilidad:jefe_dashboard' %}" class="btn btn-primary">
+                Volver al Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

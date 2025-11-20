@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- 🔔 Alertas de mensajes -->
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Título y botón -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Listado de Preventa</h2>
+    <a href="{% url "crear_presale" %}" class="btn btn-success">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle me-2" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0V6h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+      </svg>
+      Crear
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Código</th>
+              <th>Centros de Costo</th>
+              <th>Nombre Proyecto</th>
+              <th>Cliente</th>
+              <th>Cierre Aprox.</th>
+              <th>Duración</th>
+              <th>Costo Contractual</th>
+              <th>Total Costos</th>
+              <th>Utilidad</th>
+              <th>Vendedor</th>
+              <th>Responsable</th>
+              <th class="text-center">Detalles</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in objects %}
+            <tr>
+              <!-- COLUMNAS PRINCIPALES -->
+              <td><strong>{{ item.cod_projects }}</strong></td>
+              <td>
+                <span class="badge bg-primary me-1">{{ item.cost_center }}</span>
+                {% if item.extra_cost_centers %}
+                  {% for cc in item.extra_cost_centers %}
+                    <span class="badge bg-secondary me-1">{{ cc }}</span>
+                  {% endfor %}
+                {% endif %}
+              </td>
+              <td>
+                <strong class="text-white">{{ item.dres_chance|truncatewords:6 }}</strong>
+                {% if item.dres_chance|wordcount > 6 %}
+                  <small class="text-muted d-block">(ver más...)</small>
+                {% endif %}
+              </td>
+              <td>{{ item.info_costumer.com_name }}</td>
+              <td>{{ item.date_aprox_close|date:"d/m/Y"|default:"-" }}</td>
+              <td>{{ item.estimated_duration_resolved_days }} días</td>
+              <td>${{ item.cost_aprox_chance|floatformat:2|intcomma }}</td>
+               <td>${{ item.total_costs|floatformat:2|intcomma }}</td>
+                <td>${{ item.aprox_uti|floatformat:2|intcomma }}</td>
+                <td>{{ item.staff_presale|default:"-" }}</td>
+              <td>{{ item.com_exe|default:"-" }}</td>
+              
+              
+              
+              
+             
+             
+              
+              <!-- BOTÓN "!" DE DETALLES -->
+              <td class="text-center">
+                <button type="button" 
+                        class="btn btn-outline-info btn-sm" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#chance-details-{{ item.pk }}"
+                        title="Ver detalles completos">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </td>
+
+              <!-- ACCIONES EDITAR/ELIMINAR -->
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <a href="{% url 'presale_edit' item.pk %}" class="btn btn-outline-primary btn-sm" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form action="{% url 'presale_delete' item.pk %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm" 
+                            onclick="return confirm('¿Eliminar {{ item.cod_projects }}?')"
+                            title="Eliminar">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+
+            <!-- MODAL DE DETALLES - NUEVO -->
+            <div class="modal fade" id="chance-details-{{ item.pk }}" tabindex="-1" 
+                 aria-labelledby="chanceDetailsLabel-{{ item.pk }}" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="chanceDetailsLabel-{{ item.pk }}">
+                      📋 Detalles Completos: {{ item.cod_projects }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <!-- INFORMACIÓN BÁSICA -->
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                        <h6>👥 Información del Cliente</h6>
+                        <p><strong>Nombre:</strong> {{ item.info_costumer.com_name }}</p>
+                        <p><strong>RUC:</strong> {{ item.info_costumer.ruc_costumer }}</p>
+                        <p><strong>Tipo:</strong> {{ item.info_costumer.type_costumer }}</p>
+                        <p><strong>Contacto:</strong> {{ item.info_costumer.contac_costumer|default:"-" }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <h6>🚀 Información del Proyecto</h6>
+                        <p><strong>Código:</strong> {{ item.cod_projects }}</p>
+                        <p><strong>Vendedor:</strong> {{ item.com_exe|default:"-" }}</p>
+                        <p><strong>Responsable:</strong> {{ item.staff_presale|default:"-" }}</p>
+                        <p><strong>Centros de Costo:</strong>
+                          <span class="badge bg-primary me-1">{{ item.cost_center }}</span>
+                          {% if item.extra_cost_centers %}
+                            {% for cc in item.extra_cost_centers %}
+                              <span class="badge bg-secondary me-1">{{ cc }}</span>
+                            {% endfor %}
+                          {% endif %}
+                        </p>
+                        <p><strong>Duración:</strong> {{ item.estimated_duration_resolved_days }} días</p>
+                        <p><strong>Cierre Aprox.:</strong> {{ item.date_aprox_close|date:"d/m/Y"|default:"-" }}</p>
+                      </div>
+                    </div>
+
+                    <!-- DESCRIPCIÓN COMPLETA -->
+                    <div class="mb-3">
+                      <h6>📝 Descripción Completa del Proyecto</h6>
+                      <div class="border p-3 rounded bg-light text-dark">
+                        {{ item.dres_chance|linebreaks }}
+                      </div>
+                    </div>
+
+                    <!-- DETALLES DE COSTOS MEJORADOS -->
+<div class="row">
+  <div class="col-md-6">
+    <h6>💰 Costos Detallados</h6>
+    <p><strong>Monto Contractual:</strong> ${{ item.cost_aprox_chance|floatformat:2|intcomma }}</p>
+    
+    <div class="cost-breakdown mt-3">
+      <p class="mb-2"><strong>📊 Desglose de Costos:</strong></p>
+      <div class="small">
+        <div class="d-flex justify-content-between border-bottom pb-1">
+          <span>Material:</span>
+          <span>${{ item.material_cost|floatformat:2|intcomma }} 
+                {% if item.material_cost_pct %}
+                  <span class="text-muted">({{ item.material_cost_pct }}%)</span>
+                {% endif %}
+          </span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-1 mt-1">
+          <span>Mano de Obra:</span>
+          <span>${{ item.labor_cost|floatformat:2|intcomma }} 
+                {% if item.labor_cost_pct %}
+                  <span class="text-muted">({{ item.labor_cost_pct }}%)</span>
+                {% endif %}
+          </span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-1 mt-1">
+          <span>Subcontratos:</span>
+          <span>${{ item.subcontracted_cost|floatformat:2|intcomma }} 
+                {% if item.subcontracted_cost_pct %}
+                  <span class="text-muted">({{ item.subcontracted_cost_pct }}%)</span>
+                {% endif %}
+          </span>
+        </div>
+        <div class="d-flex justify-content-between pb-1 mt-1">
+          <span>Gastos Generales:</span>
+          <span>${{ item.overhead_cost|floatformat:2|intcomma }} 
+                {% if item.overhead_cost_pct %}
+                  <span class="text-muted">({{ item.overhead_cost_pct }}%)</span>
+                {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <h6>📈 Resumen Financiero</h6>
+    <div class="border-start border-3 border-primary ps-3">
+      <div class="d-flex justify-content-between">
+        <strong>Total Costos:</strong>
+        <span>${{ item.total_costs|floatformat:2|intcomma }}</span>
+      </div>
+      
+      <div class="d-flex justify-content-between mt-2">
+        <strong>Utilidad (UM):</strong>
+        <span class="{% if item.aprox_uti >= 0 %}text-success{% else %}text-danger{% endif %}">
+          ${{ item.aprox_uti|floatformat:2|intcomma }}
+        </span>
+      </div>
+      
+      {% if item.profit_margin_pct %}
+      <div class="d-flex justify-content-between mt-2">
+        <strong>Margen de Utilidad(%):</strong>
+        <span class="{% if item.profit_margin_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+          {{ item.profit_margin_pct }}%
+        </span>
+      </div>
+      {% endif %}
+      
+      <!-- BARRA DE DISTRIBUCIÓN VISUAL -->
+      <div class="mt-3">
+        <small class="text-muted d-block mb-1">Distribución de Costos vs Utilidad:</small>
+        <div class="progress" style="height: 20px;">
+          <!-- Costo Material -->
+          {% if item.material_cost_pct %}
+          <div class="progress-bar bg-warning" style="width: {{ item.material_cost_pct }}%" 
+               title="Material: {{ item.material_cost_pct }}%"></div>
+          {% endif %}
+          
+          <!-- Costo Mano de Obra -->
+          {% if item.labor_cost_pct %}
+          <div class="progress-bar bg-info" style="width: {{ item.labor_cost_pct }}%" 
+               title="Mano de Obra: {{ item.labor_cost_pct }}%"></div>
+          {% endif %}
+          
+          <!-- Costo Subcontratado -->
+          {% if item.subcontracted_cost_pct %}
+          <div class="progress-bar bg-secondary" style="width: {{ item.subcontracted_cost_pct }}%" 
+               title="Subcontratos: {{ item.subcontracted_cost_pct }}%"></div>
+          {% endif %}
+          
+          <!-- Costo Overhead -->
+          {% if item.overhead_cost_pct %}
+          <div class="progress-bar bg-dark" style="width: {{ item.overhead_cost_pct }}%" 
+               title="Gastos Generales: {{ item.overhead_cost_pct }}%"></div>
+          {% endif %}
+          
+          <!-- Utilidad -->
+          {% if item.profit_margin_pct and item.profit_margin_pct > 0 %}
+          <div class="progress-bar bg-success" style="width: {{ item.profit_margin_pct }}%" 
+               title="Utilidad: {{ item.profit_margin_pct }}%"></div>
+          {% endif %}
+        </div>
+        
+        <!-- LEYENDA -->
+        <div class="small text-muted mt-2 text-center">
+          {% if item.material_cost_pct %}
+          <span class="badge bg-warning me-1">Material</span>
+          {% endif %}
+          {% if item.labor_cost_pct %}
+          <span class="badge bg-info me-1">M. Obra</span>
+          {% endif %}
+          {% if item.subcontracted_cost_pct %}
+          <span class="badge bg-secondary me-1">Subcontratos</span>
+          {% endif %}
+          {% if item.overhead_cost_pct %}
+          <span class="badge bg-dark me-1">Gastos</span>
+          {% endif %}
+          {% if item.profit_margin_pct and item.profit_margin_pct > 0 %}
+          <span class="badge bg-success me-1">Utilidad</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ANÁLISIS DE RENTABILIDAD -->
+<div class="row mt-3">
+  <div class="col-12">
+    <div class="alert {% if item.aprox_uti >= 0 %}alert-success{% else %}alert-danger{% endif %}">
+      <h6 class="alert-heading">
+        {% if item.aprox_uti >= 0 %}
+          ✅ Proyecto Rentable
+        {% else %}
+          ⚠️ Proyecto No Rentable
+        {% endif %}
+      </h6>
+      <p class="mb-0 small">
+        {% if item.aprox_uti >= 0 %}
+          Este proyecto genera una utilidad de <strong>${{ item.aprox_uti|floatformat:2|intcomma }}</strong> 
+          ({{ item.profit_margin_pct }}% de margen).
+        {% else %}
+          Este proyecto presenta una pérdida de <strong>${{ item.aprox_uti|floatformat:2|intcomma }}</strong>. 
+          Se recomienda revisar los costos.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <tr>
+              <td colspan="13" class="text-center text-muted py-3">No hay registros de preventa</td>
+            </tr>
+            {% endfor %}  <!-- ⬅️ ESTA LÍNEA ES CRÍTICA -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS para autocerrar alertas -->
+<script>
+  setTimeout(() => {
+    let alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+      let bsAlert = new bootstrap.Alert(alert);
+      bsAlert.close();
+    });
+  }, 3000);
+</script>
+{% endblock content %}

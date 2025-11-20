@@ -1,0 +1,99 @@
+{% extends "contabilidad/base_contabilidad.html" %}
+{% load formatting %}
+
+{% block page_title %}Verificar Pago{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4>🏦 Verificar Pago en Banco</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Información de la factura -->
+                    <div class="alert alert-info">
+                        <h5>📄 Factura: {{ factura.invoice_number }}</h5>
+                        <p class="mb-1"><strong>Proyecto:</strong> {{ factura.project.cod_projects_id }} - {{ factura.project.cod_projects.dres_chance }}</p>
+                        <p class="mb-1"><strong>Monto Facturado:</strong> S/ {{ factura.amount|currency_pe }}</p>
+                        <p class="mb-1"><strong>Fecha Emisión:</strong> {{ factura.invoice_date }}</p>
+                        {% if factura.bank_reference %}
+                        <p class="mb-1"><strong>Referencia Cliente:</strong> {{ factura.bank_reference }}</p>
+                        {% endif %}
+                        {% if factura.client_notes %}
+                        <p class="mb-0"><strong>Comentarios Cliente:</strong> {{ factura.client_notes }}</p>
+                        {% endif %}
+                    </div>
+
+                    {% if factura.reported_by %}
+                    <div class="alert alert-warning">
+                        <strong>📞 Reportado por:</strong> {{ factura.reported_by.get_full_name|default:factura.reported_by.username }}<br>
+                        <strong>📅 Fecha Reporte:</strong> {{ factura.payment_reported_date }}
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Opción: VERIFICAR PAGO -->
+                        <div class="card mb-3 border-success">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">✅ VERIFICAR PAGO (Pago encontrado en banco)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Monto Recibido (S/)</label>
+                                    <input type="number" name="paid_amount" class="form-control" 
+                                           step="0.01" value="{{ factura.amount }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Código de Confirmación Bancaria</label>
+                                    <input type="text" name="bank_confirmation_code" class="form-control" 
+                                           placeholder="Ej: CONF-2024-XYZ123">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Notas de Verificación</label>
+                                    <textarea name="verification_notes" class="form-control" rows="2" 
+                                              placeholder="Ej: Pago verificado en cuenta corriente principal"></textarea>
+                                </div>
+
+                                <button type="submit" name="accion" value="verificar" class="btn btn-success btn-lg w-100">
+                                    ✅ VERIFICAR Y MARCAR COMO PAGADA
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Opción: RECHAZAR -->
+                        <div class="card border-danger">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">❌ PAGO NO RECIBIDO (No encontrado en banco)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Motivo del Rechazo *</label>
+                                    <textarea name="verification_notes" class="form-control" rows="2" 
+                                              placeholder="Ej: No se encontró el pago en las cuentas bancarias"></textarea>
+                                </div>
+
+                                <button type="submit" name="accion" value="rechazar" class="btn btn-danger w-100"
+                                        onclick="return confirm('¿Estás seguro? La factura se marcará como PAGO NO RECIBIDO')">
+                                    ❌ MARCAR COMO PAGO NO RECIBIDO
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            <a href="{% url 'contabilidad:factura_cliente_list' %}" class="btn btn-secondary">
+                                ← Volver a Lista
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

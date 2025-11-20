@@ -1,0 +1,7 @@
+project,invoice_number,invoice_date,amount,status,due_date,payment_reported_date,bank_verified_date,fully_paid_date,paid_amount,client_notes,bank_reference,bank_confirmation_code
+PROY-001,FAC-001,2024-01-15,130000,PAGADA,2024-02-15,2024-01-20,2024-02-10,2024-02-10,130000,Primer pago - Anticipo,BR-001,CONF-001
+PROY-001,FAC-002,2024-02-20,170000,PAGADA,2024-03-20,2024-02-25,2024-03-15,2024-03-15,170000,Segundo pago - Avance 30%,BR-002,CONF-002
+PROY-001,FAC-003,2024-03-25,240000,PAGADA,2024-04-25,2024-03-28,2024-04-20,2024-04-20,240000,Tercer pago - Avance 50%,BR-003,CONF-003
+PROY-001,FAC-004,2024-04-22,200000,PAGO_VERIFICADO,2024-05-22,2024-04-25,2024-05-18,,200000,Cuarto pago - Avance 70%,BR-004,CONF-004
+PROY-001,FAC-005,2024-05-20,180000,EMITIDA,2024-06-20,,, ,0,Quinto pago - Avance 85%,,
+PROY-001,FAC-006,2024-06-15,150000,BORRADOR,2024-07-15,,, ,0,Pago final - Avance 100%,,

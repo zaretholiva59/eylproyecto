@@ -1,0 +1,156 @@
+
+{% extends "base.html" %}
+{% load formatting %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">💰 Estado de Pagos</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <a href="{% url 'contabilidad_dashboard' %}" class="btn btn-sm btn-outline-secondary">← Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESUMEN DE PAGOS -->
+    <div class="row mb-4">
+        <!-- PENDIENTES PROVEEDORES -->
+        <div class="col-md-6">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pendientes Proveedores
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                S/ {{ total_pendiente_proveedores|currency_pe }}
+                            </div>
+                            <div class="text-xs text-muted">
+                                {{ facturas_pendientes.count }} facturas
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENDIENTES CLIENTES -->
+        <div class="col-md-6">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Por Cobrar Clientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                S/ {{ total_pendiente_clientes|floatformat:2 }}
+                            </div>
+                            <div class="text-xs text-muted">
+                                {{ facturas_clientes_pendientes.count }} facturas
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hand-holding-usd fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FACTURAS PENDIENTES PROVEEDORES -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">🧾 Facturas Proveedores Pendientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if facturas_pendientes %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>N° Factura</th>
+                                        <th>Proveedor</th>
+                                        <th>Fecha</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for factura in facturas_pendientes %}
+                                    <tr>
+                                        <td>{{ factura.invoice_number }}</td>
+                                        <td>{{ factura.supplier_name }}</td>
+                                        <td>{{ factura.issue_date }}</td>
+                                        <td class="font-weight-bold">S/ {{ factura.total_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <p class="text-success">¡Excelente! No hay facturas pendientes</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- FACTURAS PENDIENTES CLIENTES -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">👥 Facturas Clientes Pendientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if facturas_clientes_pendientes %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>N° Factura</th>
+                                        <th>Proyecto</th>
+                                        <th>Vencimiento</th>
+                                        <th>Monto</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for factura in facturas_clientes_pendientes %}
+                                    <tr>
+                                        <td>{{ factura.invoice_number }}</td>
+                                        <td>{{ factura.project.cod_projects_id }} - {{ factura.project.cod_projects.dres_chance }}</td>
+                                        <td class="{% if factura.due_date < today %}text-danger font-weight-bold{% endif %}">
+                                            {{ factura.due_date }}
+                                        </td>
+                                        <td>S/ {{ factura.amount|floatformat:2 }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ factura.payment_status }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <p class="text-success">¡Perfecto! No hay facturas pendientes de cobro</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

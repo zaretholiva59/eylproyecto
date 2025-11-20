@@ -1,0 +1,12 @@
+ <!-- Gantt -->
+<div class="bg-white rounded-xl shadow-lg p-6 animate-fade-in">
+    <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gray-800">Cronograma del Proyecto</h2>
+        <div class="flex space-x-2">
+            <button onclick="cambiarEscala('day')" class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Día</button>
+            <button onclick="cambiarEscala('week')" class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Semana</button>
+            <button onclick="cambiarEscala('month')" class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Mes</button>
+        </div>
+    </div>
+    <div id="gantt_here" style="width:100%; height:600px;"></div>
+</div>

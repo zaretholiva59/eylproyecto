@@ -1,0 +1,25 @@
+{% extends "tasks/base.html" %}
+{% load static %}
+
+{% block title %}Diagrama de Gantt - {{ project.cod_projects|default:"Todos los proyectos" }}{% endblock %}
+
+{% block content %}
+    {% include "tasks/gantt/components/header.html" %}
+    
+    <div class="container mx-auto px-6 py-8">
+        {% include "tasks/gantt/components/stats_cards.html" %}
+        {% include "tasks/gantt/components/gantt_chart.html" %}
+    </div>
+
+    {% include "tasks/gantt/components/modal_nueva_tarea.html" %}
+    {% include "tasks/gantt/components/modal_editar_tarea.html" %}
+{% endblock %}
+{% block extra_js %}
+    <script>
+        const ganttData = {{ gantt_data|safe }};
+        const csrfToken = '{{ csrf_token }}';
+    </script>
+    <script src="{% static 'tasks/gantt/js/gantt_init.js' %}"></script>
+    <script src="{% static 'tasks/gantt/js/modal_handler.js' %}"></script>
+    <script src="{% static 'tasks/gantt/js/task_creator.js' %}"></script>
+{% endblock %}

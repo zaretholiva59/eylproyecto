@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url "presale_list" %}">Lista de Oportunidades</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% if edit_mode %}Editar Oportunidad{% else %}Crear Oportunidad{% endif %}</li>
+  </ol>
+</nav>
+
+<form action="{% if edit_mode %}{% url 'presale_edit' chance.cod_projects %}{% else %}{% url 'crear_presale' %}{% endif %}" method="POST">
+    {% csrf_token %}
+    
+    <!-- Title and Description -->
+    <div class="form-header">
+        <h2 class="form-title">{% if edit_mode %}Edición de Oportunidad de Negocio{% else %}Registro de Oportunidad de Negocio{% endif %}</h2>
+        <p class="form-description">
+            {% if edit_mode %}
+              Ajuste los datos de la oportunidad.
+            {% else %}
+              Complete los datos para registrar la oportunidad aprobada por el cliente.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="row g-3">
+        <!-- ========== IDENTIFICACIÓN ========== -->
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.cod_projects.id_for_label }}" class="form-label">
+                Código del Proyecto *
+                {% if form.cod_projects.errors %}
+                    <span class="text-danger">{{ form.cod_projects.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.cod_projects }}
+            <small class="form-text text-muted">Código único del proyecto</small>
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.info_costumer.id_for_label }}" class="form-label">
+                Cliente *
+                {% if form.info_costumer.errors %}
+                    <span class="text-danger">{{ form.info_costumer.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.info_costumer }}
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.cost_center.id_for_label }}" class="form-label">
+                Centro de Costo *
+                {% if form.cost_center.errors %}
+                    <span class="text-danger ms-2">{{ form.cost_center.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.cost_center }}
+        </div>
+        <!-- ========== MÚLTIPLES CENTROS DE COSTO (UI) ========== -->
+        <div class="form-group col-12">
+            <label class="form-label">Centros de Costo adicionales</label>
+            <div id="extra-centers-list"></div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="add-center-btn">+ Añadir centro de costo</button>
+            <input type="hidden" id="extra_cost_centers_json" name="extra_cost_centers_json" value="[]">
+            <small class="form-text text-muted">Agregue códigos adicionales de centros de costo (ej. CC-002, CC-003).</small>
+        </div>
+
+        <!-- ========== PERSONAL ========== -->
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.staff_presale.id_for_label }}" class="form-label">
+                Responsable de Preventa *
+                {% if form.staff_presale.errors %}
+                    <span class="text-danger">{{ form.staff_presale.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.staff_presale }}
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.com_exe.id_for_label }}" class="form-label">
+                Ejecutivo Comercial *
+                {% if form.com_exe.errors %}
+                    <span class="text-danger">{{ form.com_exe.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.com_exe }}
+        </div>
+
+        <!-- ========== DESCRIPCIÓN DEL PROYECTO ========== -->
+        <div class="form-group col-12">
+            <label for="{{ form.dres_chance.id_for_label }}" class="form-label">
+                Nombre/Descripción del Proyecto *
+                {% if form.dres_chance.errors %}
+                    <span class="text-danger">{{ form.dres_chance.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.dres_chance }}
+        </div>
+
+        <!-- ========== FECHAS ========== -->
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.project_start_date.id_for_label }}" class="form-label">
+                Fecha de Inicio del Proyecto
+                {% if form.project_start_date.errors %}
+                    <span class="text-danger">{{ form.project_start_date.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.project_start_date }}
+        </div>
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.date_aprox_close.id_for_label }}" class="form-label">
+                Fecha Estimada de Cierre
+                {% if form.date_aprox_close.errors %}
+                    <span class="text-danger">{{ form.date_aprox_close.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.date_aprox_close }}
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label class="form-label">Duración Estimada</label>
+            <div class="form-control" id="duration-display" readonly>-</div>
+            <small class="form-text text-muted">Se calcula automáticamente desde inicio y cierre.</small>
+        </div>
+
+        <!-- ========== MONTOS FINANCIEROS ========== -->
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.cost_aprox_chance.id_for_label }}" class="form-label">
+                Monto Contractual Estimado *
+                {% if form.cost_aprox_chance.errors %}
+                    <span class="text-danger">{{ form.cost_aprox_chance.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.cost_aprox_chance }}
+            <small class="form-text text-muted">Precio de venta estimado</small>
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.currency.id_for_label }}" class="form-label">
+                Moneda *
+                {% if form.currency.errors %}
+                    <span class="text-danger">{{ form.currency.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.currency }}
+            <small class="form-text text-muted">Seleccione si es en Soles o Dólares</small>
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-4">
+            <label for="{{ form.exchange_rate.id_for_label }}" class="form-label">
+                Tipo de Cambio a S/
+                {% if form.exchange_rate.errors %}
+                    <span class="text-danger">{{ form.exchange_rate.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.exchange_rate }}
+            <small class="form-text text-muted">Por 1 unidad de la moneda elegida (ej: 3.7600)</small>
+        </div>
+
+        <!-- ========== COSTOS DESGLOSADOS ========== -->
+        <div class="form-group col-12">
+            <hr>
+            <h5>Desglose de Costos</h5>
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-3">
+            <label for="{{ form.material_cost.id_for_label }}" class="form-label">
+                Costo de Materiales *
+                {% if form.material_cost.errors %}
+                    <span class="text-danger">{{ form.material_cost.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.material_cost }}
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-3">
+            <label for="{{ form.labor_cost.id_for_label }}" class="form-label">
+                Costo de Mano de Obra *
+                {% if form.labor_cost.errors %}
+                    <span class="text-danger">{{ form.labor_cost.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.labor_cost }}
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-3">
+            <label for="{{ form.subcontracted_cost.id_for_label }}" class="form-label">
+                Costo Subcontratado *
+                {% if form.subcontracted_cost.errors %}
+                    <span class="text-danger">{{ form.subcontracted_cost.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.subcontracted_cost }}
+        </div>
+
+        <div class="form-group col-12 col-sm-6 col-md-3">
+            <label for="{{ form.overhead_cost.id_for_label }}" class="form-label">
+                Gastos Generales / Overhead *
+                {% if form.overhead_cost.errors %}
+                    <span class="text-danger">{{ form.overhead_cost.errors }}</span>
+                {% endif %}
+            </label>
+            {{ form.overhead_cost }}
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form Errors -->
+    {% if form.errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+        <strong>Por favor corrija los siguientes errores:</strong>
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                <li>{{ field }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Resumen Moneda -->
+    <div class="mt-4">
+        <h5>Resumen de Montos (Conversión)</h5>
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="currency-summary">
+                            <p><strong>Monto Contractual:</strong> <span id="sum-contract">-</span></p>
+                            <p><strong>Total de Costos:</strong> <span id="sum-costs">-</span></p>
+                            <p><strong>Utilidad Aproximada:</strong> <span id="sum-profit">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary mt-4">
+        {% if edit_mode %}Guardar cambios{% else %}Registrar Oportunidad{% endif %}
+    </button>
+    <a href="{% url 'presale_list' %}" class="btn btn-secondary mt-4">
+        Cancelar
+    </a>
+</form>
+
+<script>
+    (function(){
+        // ===== Helpers de formato y conversión =====
+        const getVal = (id) => {
+            const el = document.getElementById('id_' + id);
+            if (!el) return 0;
+            const v = parseFloat(el.value);
+            return isNaN(v) ? 0 : v;
+        };
+        const getCurrency = () => {
+            const el = document.getElementById('id_currency');
+            return el ? el.value : 'PEN';
+        };
+        const rateVal = () => {
+            const r = getVal('exchange_rate');
+            return r > 0 ? r : 1;
+        };
+        const fmt = (num) => (new Intl.NumberFormat('es-PE', {minimumFractionDigits:2, maximumFractionDigits:2})).format(num);
+        const symbol = (cur) => cur === 'USD' ? '$' : (cur === 'EUR' ? '€' : 'S/');
+
+        function updateSummary(){
+            const cur = getCurrency();
+            const rate = rateVal();
+            const contract = getVal('cost_aprox_chance');
+            const costs = getVal('material_cost') + getVal('labor_cost') + getVal('subcontracted_cost') + getVal('overhead_cost');
+            const profit = contract - costs;
+            const contractPen = cur === 'PEN' ? contract : contract * rate;
+            const costsPen = cur === 'PEN' ? costs : costs * rate;
+            const profitPen = contractPen - costsPen;
+
+            document.getElementById('sum-contract').innerText = `${symbol(cur)} ${fmt(contract)} | S/ ${fmt(contractPen)}`;
+            document.getElementById('sum-costs').innerText = `${symbol(cur)} ${fmt(costs)} | S/ ${fmt(costsPen)}`;
+            document.getElementById('sum-profit').innerText = `${symbol(cur)} ${fmt(profit)} | S/ ${fmt(profitPen)}`;
+        }
+
+        ['currency','exchange_rate','cost_aprox_chance','material_cost','labor_cost','subcontracted_cost','overhead_cost'].forEach(id=>{
+            const el = document.getElementById('id_' + id);
+            if (el) {
+                el.addEventListener('input', updateSummary);
+                el.addEventListener('change', updateSummary);
+            }
+        });
+        document.addEventListener('DOMContentLoaded', updateSummary);
+
+        // ===== Cálculo de duración en días con fechas =====
+        function parseDateInputEl(el){
+            if(!el) return null;
+            const val = el.value;
+            if(!val) return null;
+            const parts = val.split('-');
+            if(parts.length !== 3) return null;
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            return new Date(y, m, d);
+        }
+        function updateDuration(){
+            const startEl = document.getElementById('id_project_start_date') || document.querySelector('[name="project_start_date"]');
+            const endEl = document.getElementById('id_date_aprox_close') || document.querySelector('[name="date_aprox_close"]');
+            const display = document.getElementById('duration-display');
+            const start = parseDateInputEl(startEl);
+            const end = parseDateInputEl(endEl);
+            if(start && end){
+                const ms = end - start;
+                const days = Math.floor(ms / (1000*60*60*24));
+                display.textContent = (days >= 0 ? days : 0) + ' días';
+            } else {
+                display.textContent = '-';
+            }
+        }
+        const startEl = document.getElementById('id_project_start_date') || document.querySelector('[name="project_start_date"]');
+        const endEl = document.getElementById('id_date_aprox_close') || document.querySelector('[name="date_aprox_close"]');
+        if(startEl){ startEl.addEventListener('change', updateDuration); startEl.addEventListener('input', updateDuration); }
+        if(endEl){ endEl.addEventListener('change', updateDuration); endEl.addEventListener('input', updateDuration); }
+        document.addEventListener('DOMContentLoaded', updateDuration);
+
+        // ===== UI de múltiples centros de costo =====
+        var listEl = document.getElementById('extra-centers-list');
+        var addBtn = document.getElementById('add-center-btn');
+        var hiddenEl = document.getElementById('extra_cost_centers_json');
+        var formEl = document.querySelector('form');
+
+        function addCenterRow(value){
+            var row = document.createElement('div');
+            row.className = 'input-group mb-2';
+            row.innerHTML = '<input type="text" name="extra_centers[]" class="form-control extra-center-input" placeholder="Código centro de costo" value="' + (value || '') + '">' +
+                            '<button type="button" class="btn btn-outline-danger">Eliminar</button>';
+            row.querySelector('button').addEventListener('click', function(){ row.remove(); });
+            listEl.appendChild(row);
+        }
+
+        if(addBtn){ addBtn.addEventListener('click', function(){ addCenterRow(''); }); }
+
+        // Pre-cargar valores iniciales en modo edición (sin depender de JSON.parse)
+        (function(){
+            var joined = '{{ chance.extra_cost_centers|default:None|join:","|escapejs }}';
+            if(joined && joined !== 'None'){
+                joined.split(',').forEach(function(cc){
+                    if(cc && cc.trim()){ addCenterRow(cc.trim()); }
+                });
+            }
+        })();
+
+        if(formEl){
+            formEl.addEventListener('submit', function(){
+                var codes = Array.from(document.querySelectorAll('.extra-center-input'))
+                    .map(function(i){ return (i.value || '').trim(); })
+                    .filter(function(s){ return s.length > 0; });
+                // Unicos manteniendo orden
+                var seen = new Set();
+                var unique = [];
+                codes.forEach(function(c){ if(!seen.has(c)){ seen.add(c); unique.push(c); } });
+                hiddenEl.value = JSON.stringify(unique);
+            });
+        }
+    })();
+ </script>
+<br>
+{% endblock content %}

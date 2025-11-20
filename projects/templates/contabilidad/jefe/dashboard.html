@@ -1,0 +1,354 @@
+{% extends "contabilidad/base_contabilidad.html" %}
+{% load humanize %}
+{% load formatting %}
+
+{% block title %}Dashboard - Jefe Contabilidad{% endblock %}
+{% block page_title %}📊 Dashboard - Jefe de Contabilidad{% endblock %}
+
+{% block sidebar %}
+<li class="nav-item">
+    <a class="nav-link active" href="{% url 'contabilidad:jefe_dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:verificacion_bancaria_simple' %}">
+        <i class="bi bi-bank"></i> Verificación Bancaria
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:factura_cliente_list' %}">
+        <i class="bi bi-receipt-cutoff"></i> Todas las Facturas
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:reportes_contables' %}">
+        <i class="bi bi-graph-up"></i> Reportes Ejecutivos
+    </a>
+</li>
+{% endblock %}
+
+{% block header_buttons %}
+<div class="btn-group me-2">
+    <a href="{% url 'contabilidad:verificacion_bancaria_simple' %}" class="btn btn-sm btn-warning">
+        <i class="bi bi-bank"></i> Verificar Pagos ({{ pendientes_verificacion }})
+    </a>
+    <a href="{% url 'contabilidad:reportes_contables' %}" class="btn btn-sm btn-info">
+        <i class="bi bi-graph-up"></i> Reportes
+    </a>
+    {% if alertas_detalle %}
+    <button type="button" id="btn-alertas-jefe" class="btn btn-sm btn-outline-warning" title="Retrasos de verificación" data-bs-toggle="popover" data-bs-html="true" data-bs-trigger="hover focus" data-bs-placement="bottom">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+    </button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Tarjeta Pendientes Verificación -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pendientes Verificación
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pendientes_verificacion }}</div>
+                        <div class="text-xs text-muted">S/ {{ monto_pendiente|currency_pe }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock-history fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta Problemas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Problemas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ facturas_problema }}</div>
+                        <div class="text-xs text-muted">Requieren atención</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Tarjeta Avance Contractual -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Avance Contractual
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ avance_contractual_global|percent_pe }}%</div>
+                        <div class="text-xs text-muted">Cobrado verificado / Contrato</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-graph-up-arrow fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if alertas_detalle %}
+<!-- Contenido oculto del popover de alertas -->
+<div id="alertasPopoverContent" class="d-none">
+    <div class="small">
+        <div class="mb-2 fw-bold">Facturas con verificación &gt; 3 días</div>
+        <ul class="list-unstyled mb-0">
+            {% for al in alertas_detalle %}
+            <li>• {{ al.invoice_number }} — S/ {{ al.amount|currency_pe }} — {{ al.dias }} días{% if al.project_id %} — {{ al.project_id }}{% endif %}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <hr class="my-2">
+    <div class="small">Total pendiente: <strong>S/ {{ monto_pendiente|currency_pe }}</strong></div>
+</div>
+{% endif %}
+
+<!-- Pendientes de Verificación -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">🟡 Facturas Pendientes de Verificación</h5>
+                <a href="{% url 'contabilidad:verificacion_bancaria_simple' %}" class="btn btn-sm btn-warning">
+                    <i class="bi bi-bank"></i> Ver Todas
+                </a>
+            </div>
+            <div class="card-body">
+                {% if pendientes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Factura</th>
+                                <th>Proyecto</th>
+                                <th>Monto</th>
+                                <th>Reportado por</th>
+                                <th>Días Pendiente</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factura in pendientes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ factura.invoice_number }}</strong>
+                                    {% if factura.invoice_file %}
+                                    <br>
+                                    <small>
+                                        <a href="{{ factura.invoice_file.url }}" target="_blank" class="text-primary">
+                                            <i class="bi bi-file-pdf"></i> Ver PDF
+                                        </a>
+                                    </small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ factura.project.cod_projects_id }} - {{ factura.project.cod_projects.dres_chance }}</td>
+                                <td>S/ {{ factura.amount|currency_pe }}</td>
+                                <td>
+                                    {% if factura.reported_by %}
+                                        {{ factura.reported_by.get_full_name|default:factura.reported_by.username }}
+                                    {% else %}
+                                        <span class="text-muted">Sin responsable</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if factura.dias_pendiente > 14 %}
+                                        <span class="badge bg-danger">{{ factura.dias_pendiente }} días</span>
+                                    {% elif factura.dias_pendiente >= 7 %}
+                                        <span class="badge" style="background-color:#fd7e14;color:#fff">{{ factura.dias_pendiente }} días</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">{{ factura.dias_pendiente }} días</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'contabilidad:verificacion_bancaria_simple' %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-bank"></i> Verificar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">No hay facturas pendientes de verificación</p>
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> ¡Todo al día!
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+</div>
+</div>
+</div>
+
+<!-- Métricas por Proyecto -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📈 Métricas por Proyecto</h5>
+            </div>
+            <div class="card-body">
+                <style>
+                  .metric-icon{display:inline-block;width:18px;height:18px;border-radius:50%;background:#6c757d;color:#fff;font-weight:700;font-size:12px;line-height:18px;text-align:center;margin-left:6px;position:relative;}
+                  .metric-icon::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid #6c757d;}
+                  .metrics-table th{white-space:nowrap;}
+                  .metric-icon.metric-info{background:transparent;width:auto;height:auto;line-height:normal;color:#6c757d;}
+                </style>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Contrato Global <span class="metric-icon metric-info" title="¡Contrato Global!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Monto contractual total.</div><strong>Cómo se calcula</strong><div>Suma de contratos de todos los proyectos.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th class="text-center">Facturado Global <span class="metric-icon metric-info" title="¡Facturado Global!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Total facturado acumulado.</div><strong>Cómo se calcula</strong><div>Suma de <em>amount</em> de facturas de todos los proyectos.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th class="text-center">Cobrado Verificado Global <span class="metric-icon metric-info" title="¡Cobrado Verificado Global!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Total cobrado verificado.</div><strong>Cómo se calcula</strong><div>Suma de <em>paid_amount</em> (o <em>amount</em>) con verificación bancaria.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-center"><strong>S/ {{ total_contractual_global|currency_pe }}</strong></td>
+                                <td class="text-center"><strong>S/ {{ total_facturado_global|currency_pe }}</strong></td>
+                                <td class="text-center"><strong>S/ {{ total_pagado_global|currency_pe }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm metrics-table">
+                        <thead>
+                            <tr>
+                                <th>Código <span class="metric-icon metric-info" title="¡Código!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Identificador del proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Descripción <span class="metric-icon metric-info" title="¡Descripción!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Nombre o resumen del proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Centro de Costo <span class="metric-icon metric-info" title="¡Centro de Costo!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Agrupador contable asignado al proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Total Facturado <span class="metric-icon metric-info" title="¡Total Facturado!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Importe total facturado.</div><strong>Cómo se calcula</strong><div>Suma de <em>amount</em> de todas las facturas del proyecto.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Pagado Verificado <span class="metric-icon metric-info" title="¡Pagado Verificado!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Importe cobrado y verificado en banco.</div><strong>Cómo se calcula</strong><div>Suma de <em>paid_amount</em> (o <em>amount</em> si aplica) con <em>bank_verified_date</em> no nula.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Pendiente por Cobrar <span class="metric-icon metric-info" title="¡Pendiente por Cobrar!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Facturado aún no cobrado (verificado).</div><strong>Cómo se calcula</strong><div>Total facturado − Cobrado verificado.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Pendiente por Facturar <span class="metric-icon metric-info" title="¡Pendiente por Facturar!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Contrato aún no facturado.</div><strong>Cómo se calcula</strong><div>Monto contractual − Total facturado.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Avance Contractual <span class="metric-icon metric-info" title="¡Avance Contractual!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Porcentaje del contrato cobrado (verificado).</div><strong>Cómo se calcula</strong><div>(Cobrado verificado / Monto contractual) × 100.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Facturación vs Contrato <span class="metric-icon metric-info" title="¡Facturación vs Contrato!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Avance de facturación frente al contrato.</div><strong>Cómo se calcula</strong><div>(Total facturado / Monto contractual) × 100.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Eficiencia Cobranza <span class="metric-icon metric-info" title="¡Eficiencia de Cobranza!" data-bs-toggle="popover" data-bs-html="true" data-bs-content="<div class='small'><strong>Qué significa</strong><div>Eficiencia de cobro respecto a lo facturado.</div><strong>Cómo se calcula</strong><div>(Cobrado verificado / Total facturado) × 100.</div></div>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="m8.93 6.588-2.29 .287-.082 .38 .45 .083c .294 .07 .352 .176 .288 .469l-.738 3.468c-.194 .897 .105 1.319 .808 1.319 .545 0 1.178-.252 1.465-.598l .088-.416c-.2 .176-.492 .246-.686 .246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg></span></th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for metric in metricas_proyectos %}
+                            <tr>
+                                <td><strong>{{ metric.codigo }}</strong></td>
+                                <td>{{ metric.descripcion }}</td>
+                                <td>{{ metric.centro_costo }}</td>
+                                <td>S/ {{ metric.total_facturado|currency_pe }}</td>
+                                <td>S/ {{ metric.pagado|currency_pe }}</td>
+                                <td>S/ {{ metric.pendiente|currency_pe }}</td>
+                                <td>S/ {{ metric.pendiente_facturar|currency_pe }}</td>
+                                <td>{{ metric.avance_pct|percent_pe }}%</td>
+                                <td>{{ metric.fact_vs_contrato_pct|percent_pe }}%</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if metric.eficiencia >= 80 %}bg-success{% elif metric.eficiencia >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ metric.eficiencia|floatformat:2 }}%">
+                                            {{ metric.eficiencia|percent_pe }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if metric.eficiencia >= 80 %}bg-success{% elif metric.eficiencia >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {% if metric.eficiencia >= 80 %}Excelente
+                                        {% elif metric.eficiencia >= 60 %}Aceptable
+                                        {% else %}Crítico{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var btn = document.getElementById('btn-alertas-jefe');
+  var content = document.getElementById('alertasPopoverContent');
+  if (btn && content) {
+    new bootstrap.Popover(btn, {
+      container: 'body',
+      html: true,
+      trigger: 'hover focus',
+      placement: 'bottom',
+      content: content.innerHTML
+    });
+  }
+  var headers = document.querySelectorAll('th');
+  headers.forEach(function(th){
+    var text = th.textContent.trim();
+    var span = th.querySelector('.metric-icon');
+    if(!span) return;
+    var helpContent = "";
+    switch(text){
+      case 'Contrato Global':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Monto del contrato.</div><strong>Cómo se calcula</strong><div>Suma de todos los contratos.</div></div>";
+        break;
+      case 'Facturado Global':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Total facturado acumulado.</div><strong>Cómo se calcula</strong><div>Suma de montos de todas las facturas.</div></div>";
+        break;
+      case 'Cobrado Verificado Global':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Total cobrado confirmado.</div><strong>Cómo se calcula</strong><div>Suma de montos cobrados con comprobante del banco.</div></div>";
+        break;
+      case 'Total Facturado':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Importe total facturado.</div><strong>Cómo se calcula</strong><div>Suma de montos de todas las facturas del proyecto.</div></div>";
+        break;
+      case 'Pagado Verificado':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Importe cobrado y confirmado.</div><strong>Cómo se calcula</strong><div>Suma de montos cobrados con comprobante del banco.</div></div>";
+        break;
+      case 'Pendiente por Cobrar':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Facturado aún no cobrado.</div><strong>Cómo se calcula</strong><div>Total facturado − Cobrado verificado.</div></div>";
+        break;
+      case 'Pendiente por Facturar':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Parte del contrato aún no facturada.</div><strong>Cómo se calcula</strong><div>Monto contractual − Total facturado.</div></div>";
+        break;
+      case 'Avance Contractual':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Porcentaje del contrato cobrado.</div><strong>Cómo se calcula</strong><div>(Total Cobrado / Monto Contractual) × 100</div></div>";
+        break;
+      case 'Facturación vs Contrato':
+        helpContent = "<div class='small'><strong>Qué significa</strong><div>Avance de facturación frente al contrato.</div><strong>Cómo se calcula</strong><div>Total facturado dividido entre monto contractual, por 100.</div></div>";
+        break;
+    }
+    if(helpContent){
+      span.setAttribute('data-bs-content', helpContent);
+    }
+  });
+  var helps = document.querySelectorAll('.metric-icon');
+  helps.forEach(function(el){
+    new bootstrap.Popover(el, {
+      container: 'body',
+      html: true,
+      trigger: 'hover focus',
+      placement: 'bottom'
+    });
+  });
+});
+</script>
+{% endblock %}

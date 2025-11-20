@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Lista de clientes</h3>
+    <a href="{% url 'customer_create' %}" class="btn btn-primary">➕ Crear cliente</a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Barra de búsqueda y filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-4">
+          <label for="search" class="form-label">Buscar cliente</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="search" name="search" 
+                   value="{{ search_query }}" placeholder="RUC, nombre o contacto...">
+            {% if search_query %}
+              <a href="?" class="btn btn-outline-secondary" title="Limpiar búsqueda">
+                <i class="bi bi-x"></i>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label for="type" class="form-label">Tipo de cliente</label>
+          <select class="form-select" id="type" name="type">
+            <option value="">Todos los tipos</option>
+            {% for value, label in customer_types %}
+              <option value="{{ value }}" {% if customer_type == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary me-2">
+            <i class="bi bi-search"></i> Buscar
+          </button>
+          <a href="?" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-clockwise"></i> Limpiar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Información de resultados -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <small class="text-muted">
+        Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ total_customers }} clientes
+        {% if search_query %}
+          (filtrado por: "{{ search_query }}")
+        {% endif %}
+        {% if customer_type %}
+          (tipo: {{ customer_type }})
+        {% endif %}
+      </small>
+    </div>
+    <div>
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if customer_type %}&type={{ customer_type }}{% endif %}" 
+           class="btn btn-sm btn-outline-primary">Anterior</a>
+      {% endif %}
+      
+      <span class="mx-2">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+      </span>
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if customer_type %}&type={{ customer_type }}{% endif %}" 
+           class="btn btn-sm btn-outline-primary">Siguiente</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tabla de clientes -->
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>RUC</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Contacto</th>
+          <th width="200" class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in page_obj %}
+          <tr>
+            <td>
+              <strong>{{ c.ruc_costumer }}</strong>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ c.com_name }}</div>
+            </td>
+            <td>
+              <span class="badge bg-secondary">{{ c.get_type_costumer_display }}</span>
+            </td>
+            <td>
+              {% if c.contac_costumer %}
+                <small class="text-muted">{{ c.contac_costumer }}</small>
+              {% else %}
+                <small class="text-muted">—</small>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <div class="btn-group btn-group-sm" role="group">
+                <a href="{% url 'customer_detail' c.pk %}" class="btn btn-outline-primary" title="Ver detalles">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'customer_edit' c.pk %}" class="btn btn-outline-secondary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'customer_delete' c.pk %}" class="btn btn-outline-danger" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-4">
+              <div class="text-muted">
+                <i class="bi bi-inbox display-4"></i>
+                <p class="mt-2">
+                  {% if search_query or customer_type %}
+                    No se encontraron clientes con los filtros aplicados.
+                  {% else %}
+                    No hay clientes registrados.
+                  {% endif %}
+                </p>
+                <a href="{% url 'customer_create' %}" class="btn btn-primary">
+                  <i class="bi bi-plus"></i> Crear primer cliente
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación inferior -->
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="Paginación de clientes">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if customer_type %}&type={{ customer_type }}{% endif %}">
+              Anterior
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Anterior</span>
+          </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active">
+              <span class="page-link">{{ num }}</span>
+            </li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if customer_type %}&type={{ customer_type }}{% endif %}">
+                {{ num }}
+              </a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if customer_type %}&type={{ customer_type }}{% endif %}">
+              Siguiente
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Siguiente</span>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+
+  <div class="mt-3">
+    <a href="/" class="btn btn-link">
+      <i class="bi bi-arrow-left"></i> Volver al inicio
+    </a>
+  </div>
+</div>
+{% endblock %}

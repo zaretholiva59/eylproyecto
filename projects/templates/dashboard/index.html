@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- HEADER DEL DASHBOARD -->
+     {% include "dashboard/components/_dashboard_header.html" with proyecto=proyecto todos_proyectos=todos_proyectos bac_planeado_display=bac_planeado_display bac_display=bac_display porcentaje_ejecutado=porcentaje_ejecutado duracion_real=duracion_real duracion_planeada=duracion_planeada estado_proyecto=estado_proyecto monto_faltante=monto_faltante %}
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="row">
+        <!-- GRÁFICO CURVA S -->
+        <div class="col-lg-6 mb-4">
+            {% include "dashboard/components/_curva_s_charts.html" %}
+        </div>
+        
+        <!-- GRÁFICO EXCEL EJECUTIVO -->
+        <div class="col-lg-6 mb-4">
+            {% include "dashboard/components/_excel_charts.html" %}
+        </div>
+    </div>
+    
+    <!-- TABLA RESUMEN EJECUTIVO -->
+    <div class="row mt-4">
+        <div class="col-12">
+            
+                <div class="card-body" id="tablaResumenBody" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th>Monto (S/)</th>
+                                    <th>Porcentaje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Monto Contractual</strong></td>
+                                    <td id="montoContractual" class="text-end">-</td>
+                                    <td class="text-center">100%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Costo Total</strong></td>
+                                    <td id="costoTotal" class="text-end">-</td>
+                                    <td id="costoPorcentaje" class="text-center">-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Margen</strong></td>
+                                    <td id="margen" class="text-end text-success">-</td>
+                                    <td id="margenPorcentaje" class="text-center text-success">-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Facturación a la fecha</strong></td>
+                                    <td id="facturacion" class="text-end text-primary">-</td>
+                                    <td id="facturacionPorcentaje" class="text-center text-primary">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <hr class="my-3">
+                    <h6 class="text-success mb-2">Detalle Mensual</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mes</th>
+                                    <th>Facturación</th>
+                                    <th>Costos</th>
+                                    <th>Avance (%)</th>
+                                    <th>Eficiencia (%)</th>
+                                    <th>Acumulado Trimestral</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corporativo_grid_body_page">
+                                <!-- Filas generadas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MÉTRICAS Y TARJETAS -->
+    {% include "dashboard/components/_metrics_cards.html" with cpi=cpi spi=spi cv=cv sv=sv eac=eac etc=etc %}
+</div>
+
+<!-- SCRIPTS DEL DASHBOARD (Chart.js solo aquí para evitar duplicados) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+<!-- ✅ PASAR DATOS DE DJANGO AL JAVASCRIPT (con valores por defecto seguros) -->
+<script>
+// Variables globales con datos de Django (valores seguros)
+window.dashboardData = {
+    meses: {{ meses|default:'[]'|safe }},
+    pv: {{ pv|default:'[]'|safe }},
+    ev: {{ ev|default:'[]'|safe }},
+    ac: {{ ac|default:'[]'|safe }},
+    ac_paid: {{ ac_paid|default:'[]'|safe }},
+    bac: {{ bac|default:'0' }},
+    // Semanas
+    semanas_labels: {{ semanas_labels|default:'[]'|safe }},
+    semanas_pv: {{ semanas_pv|default:'[]'|safe }},
+    semanas_ev: {{ semanas_ev|default:'[]'|safe }},
+    semanas_ac: {{ semanas_ac|default:'[]'|safe }},
+    // Días
+    dias_labels: {{ dias_labels|default:'[]'|safe }},
+    dias_pv: {{ dias_pv|default:'[]'|safe }},
+    dias_ev: {{ dias_ev|default:'[]'|safe }},
+    dias_ac: {{ dias_ac|default:'[]'|safe }}
+};
+// Datos ejecutivos para gráficos Excel
+window.bacPlaneado = {{ bac_planeado|default:'0' }};
+window.bacReal = {{ bac|default:'0' }};
+window.costData = {{ cost_data|default:'[]'|safe }};
+window.efficiencyMeses = {{ efficiency_meses|default:'[]'|safe }};
+window.efficiencyData = {{ efficiency_data|default:'[]'|safe }};
+// Nuevos: Monto contractual y facturación verificada
+window.contractAmount = {{ contract_amount|default:'0' }};
+window.facturadoClienteTotal = {{ facturado_cliente_total|default:'0' }};
+window.facturacionMensual = {{ facturacion_mensual|default:'[]'|safe }};
+// Hoja de horas
+window.horasData = {{ horas_data|default:'[]'|safe }};
+console.log('📊 Datos cargados:', window.dashboardData);
+</script>
+
+<script>
+    // Variables ya inicializadas arriba con defaults seguros
+
+    // Exponer otros datos (con defaults seguros)
+    window.bacPlaneado = {{ bac_planeado|default:'0' }};
+    window.bacReal = {{ bac|default:'0' }};
+    window.costData = {{ cost_data|default:'[]'|safe }};
+    window.efficiencyMeses = {{ efficiency_meses|default:'[]'|safe }};
+    window.efficiencyData = {{ efficiency_data|default:'[]'|safe }};
+    window.contractAmount = {{ contract_amount|default:'0' }};
+    window.facturadoClienteTotal = {{ facturado_cliente_total|default:'0' }};
+    window.facturacionMensual = {{ facturacion_mensual|default:'[]'|safe }};
+    window.horasData = {{ horas_data|default:'[]'|safe }};
+
+    // Debug opcional (evita inyectar variables crudas sin defaults)
+    console.log('=== DATOS CURVA S ===');
+    console.log('Meses:', {{ meses|default:'[]'|safe }});
+    console.log('PV:', {{ pv|default:'[]'|safe }});
+    console.log('EV:', {{ ev|default:'[]'|safe }});
+    console.log('AC:', {{ ac|default:'[]'|safe }});
+    console.log('Bac:', {{ bac|default:'0' }});
+
+    console.log('=== DATOS EJECUTIVO ===');
+    console.log('Cost Data:', {{ cost_data|default:'[]'|safe }});
+    console.log('Efficiency Meses:', {{ efficiency_meses|default:'[]'|safe }});
+    console.log('Efficiency Data:', {{ efficiency_data|default:'[]'|safe }});
+    </script>
+    <script src="{% static 'js/dashboard_manager.js' %}" defer></script>
+{% endblock %}

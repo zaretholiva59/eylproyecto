@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load formatting %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Detalles del cliente</h3>
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>RUC:</strong> {{ customer.ruc_costumer }}</p>
+          <p><strong>Nombre:</strong> {{ customer.com_name }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Tipo:</strong> {{ customer.get_type_costumer_display }}</p>
+          <p><strong>Contacto:</strong> {{ customer.contac_costumer|default:'—' }}</p>
+        </div>
+      </div>
+      <div class="mt-2">
+        <a class="btn btn-primary" href="{% url 'customer_edit' customer.pk %}">Editar</a>
+        <a class="btn btn-outline-danger" href="{% url 'customer_delete' customer.pk %}" onclick="return confirm('¿Eliminar cliente?');">Eliminar</a>
+        <a class="btn btn-link" href="{% url 'customers_list' %}">← Volver a lista</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DE ESTADÍSTICAS -->
+  <h4>Resumen</h4>
+  <div class="row mb-3">
+    
+   
+    
+    <!-- Tarjeta de Proyectos -->
+    <div class="col-md-3">
+      <div class="card text-bg-success">
+        <div class="card-body text-center">
+          <h5>{{ customer_stats.total_projects }}</h5>
+          <small>Proyectos</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta de Facturación -->
+    <div class="col-md-3">
+      <div class="card text-bg-warning">
+        <div class="card-body text-center">
+          <h5>S/ {{ customer_stats.total_invoiced|currency_pe }}</h5>
+          <small>Total Facturado</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA: ÚLTIMOS PROYECTOS (con counts) -->
+  <h4>Últimos proyectos</h4>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Centros de Costo</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Órdenes</th>
+          <th>Facturas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for project in projects %}
+        <tr>
+          <td>
+            <a href="{% url 'project_dashboard' project.cod_projects_id %}">{{ project.cod_projects_id }}</a>
+          </td>
+          <td>{{ project.cod_projects.dres_chance|default:project.cod_projects_id|truncatechars:50 }}</td>
+          <td>
+            <span class="badge bg-primary me-1">{{ project.cost_center }}</span>
+            {% if project.cod_projects.extra_cost_centers %}
+              {% for cc in project.cod_projects.extra_cost_centers %}
+                <span class="badge bg-secondary me-1">{{ cc }}</span>
+              {% endfor %}
+            {% endif %}
+          </td>
+          <td>{{ project.state_projects|default:'-' }}</td>
+          <td>{{ project.start_date|date:'d/m/Y'|default:'-' }}</td>
+          <td><span class="badge bg-primary">{{ project.purchase_orders_count }}</span></td>
+          <td><span class="badge bg-success">{{ project.client_invoices_count }}</span></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted">Sin proyectos relacionados</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECCIÓN RESERVADA PARA GRÁFICOS -->
+  <h4>Análisis Visual</h4>
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">Distribución de Proyectos por Estado</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="projectsChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">Evolución de Facturación</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="invoicingChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Script para inicializar gráficos -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Aquí iría el código Chart.js para crear los gráficos
+  // Por ahora está preparado para cuando tengamos los datos
+  
+  console.log('Sección de gráficos preparada para Chart.js');
+});
+</script>
+{% endblock %}

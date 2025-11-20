@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema Contable{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+        }
+        .nav-link {
+            color: #495057;
+            padding: 0.75rem 1rem;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: #e9ecef;
+            color: #0d6efd;
+        }
+        .status-emitida { border-left: 4px solid #ffc107; }
+        .status-reportado { border-left: 4px solid #0dcaf0; }
+        .status-verificado { border-left: 4px solid #198754; }
+        .status-problema { border-left: 4px solid #dc3545; }
+        .form-select.bg-dark {
+            background-color: #1f2530;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+        .form-select.bg-dark:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+        }
+        .form-select.bg-dark option { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                        <span>Contabilidad</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        {% block sidebar %}
+                        <!-- Contenido específico por rol -->
+                        {% endblock %}
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <!-- Header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">{% block page_title %}Sistema Contable{% endblock %}</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        {% block header_buttons %}{% endblock %}
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Content -->
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

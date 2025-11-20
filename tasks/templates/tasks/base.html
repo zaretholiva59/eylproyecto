@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>{% block title %}Gantt{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.css" rel="stylesheet">    
+    <style>
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .animate-slide-in { animation: slideInRight 0.3s ease-out; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        
+        #gantt_here {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    
+    {% block content %}{% endblock %}
+    
+<script src="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.js"></script>    {% block extra_js %}{% endblock %}
+    
+</body>
+</html>

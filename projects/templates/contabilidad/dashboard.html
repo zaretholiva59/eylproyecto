@@ -1,0 +1,199 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">📊 Dashboard de Contabilidad</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <a href="{% url 'contabilidad:facturas_list' %}" class="btn btn-sm btn-outline-secondary">📋 Facturas Proveedores</a>
+                <a href="{% url 'contabilidad:facturas_clientes_list' %}" class="btn btn-sm btn-outline-secondary">👥 Facturas Clientes</a>
+                <a href="{% url 'contabilidad:pagos_status' %}" class="btn btn-sm btn-outline-secondary">💰 Estado de Pagos</a>
+                <a href="{% url 'contabilidad:reportes_contables' %}" class="btn btn-sm btn-outline-primary">📈 Reportes</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETAS RESUMEN -->
+    <div class="row">
+        <!-- FACTURAS PROVEEDORES -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Facturas Proveedores
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ invoices_stats.total }}
+                            </div>
+                            <div class="text-xs text-muted">
+                                Pendientes: {{ invoices_stats.pendientes }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-invoice fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FACTURAS CLIENTES -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Facturas Clientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ client_invoices_stats.total }}
+                            </div>
+                            <div class="text-xs text-muted">
+                                Pagadas: {{ client_invoices_stats.pagadas }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hand-holding-usd fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MONTO TOTAL -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Monto Total
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                S/ {{ invoices_stats.total_monto|floatformat:2 }}
+                            </div>
+                            <div class="text-xs text-muted">
+                                Proveedores
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENDIENTES CLIENTES -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pendientes Clientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ client_invoices_stats.pendientes }}
+                            </div>
+                            <div class="text-xs text-muted">
+                                Por cobrar
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FACTURAS RECIENTES -->
+    <div class="row">
+        <!-- FACTURAS PROVEEDORES RECIENTES -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">📋 Facturas Proveedores Recientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_invoices %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>N° Factura</th>
+                                        <th>Proveedor</th>
+                                        <th>Fecha</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for factura in recent_invoices %}
+                                    <tr>
+                                        <td>{{ factura.invoice_number }}</td>
+                                        <td>{{ factura.supplier_name }}</td>
+                                        <td>{{ factura.issue_date }}</td>
+                                        <td>S/ {{ factura.total_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No hay facturas recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- FACTURAS CLIENTES RECIENTES -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">👥 Facturas Clientes Recientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_client_invoices %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>N° Factura</th>
+                                        <th>Proyecto</th>
+                                        <th>Estado</th>
+                                        <th>Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for factura in recent_client_invoices %}
+                                    <tr>
+                                        <td>{{ factura.invoice_number }}</td>
+                                        <td>{{ factura.project.cod_projects_id }} - {{ factura.project.cod_projects.dres_chance }}</td>
+                                        <td>
+                                            <span class="badge {% if factura.payment_status == 'PAGADA' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ factura.payment_status }}
+                                            </span>
+                                        </td>
+                                        <td>S/ {{ factura.amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No hay facturas de clientes recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

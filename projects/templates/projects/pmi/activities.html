@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3>Actividades PMI · Proyecto: {{ project.cod_projects_id }} - {{ project.cod_projects.dres_chance }} ({{ project.cost_center }})</h3>
+    <div class="d-flex gap-2">
+      <select id="projectSelector" class="form-select">
+        {% for p in projects_nav %}
+          <option value="{{ p.cod_projects_id }}" {% if p.cod_projects_id == project.cod_projects_id %}selected{% endif %}>
+            {{ p.cod_projects_id }} · {{ p.cost_center }}
+          </option>
+        {% endfor %}
+      </select>
+      <a class="btn btn-outline-primary" href="{% url 'project_dashboard' project.cod_projects_id %}">Ver Dashboard</a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-5">
+      <div class="card">
+        <div class="card-header">Crear actividades</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'add_project_activity' project.cod_projects_id %}">
+            {% csrf_token %}
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label">Nombre</label>
+                <input type="text" name="name" class="form-control" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Descripción</label>
+                <textarea name="description" class="form-control" rows="2"></textarea>
+              </div>
+              <div class="col-4">
+                <label class="form-label">Unidades</label>
+                <input type="number" name="total_units" class="form-control" min="1" required>
+              </div>
+              <div class="col-8">
+                <label class="form-label">Unidad de medida</label>
+                <input type="text" name="unit_of_measure" class="form-control" required>
+              </div>
+              <div class="col-4">
+                <label class="form-label">Complejidad (1-5)</label>
+                <input type="number" name="complexity" class="form-control" min="1" max="5" value="3">
+              </div>
+              <div class="col-4">
+                <label class="form-label">Esfuerzo (1-5)</label>
+                <input type="number" name="effort" class="form-control" min="1" max="5" value="3">
+              </div>
+              <div class="col-4">
+                <label class="form-label">Impacto (1-5)</label>
+                <input type="number" name="impact" class="form-control" min="1" max="5" value="3">
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-success w-100">Crear actividad</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Lista de actividades</span>
+          <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#formulaInfoModal">
+            <i class="bi bi-info-circle"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          {% if activities %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th>Actividad</th>
+                    <th class="text-end">Unidades</th>
+                    <th class="text-end">Completadas</th>
+                    <th class="text-end">Peso</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for a in activities %}
+                  <tr>
+                    <td>{{ a.name }}</td>
+                    <td class="text-end">{{ a.total_units }}</td>
+                    <td class="text-end">{{ a.completed_units }}</td>
+                    <td class="text-end">{{ a.calculated_weight|default:"-" }}</td>
+                    <td class="text-center">
+                       <div class="d-inline-flex align-items-center justify-content-center gap-1">
+                         <form class="d-inline" method="post" action="{% url 'update_activity_units' a.id %}">
+                           {% csrf_token %}
+                           <div class="input-group input-group-sm" style="width:120px;">
+                             <input type="number" name="completed_units" class="form-control form-control-sm" min="0" max="{{ a.total_units }}" value="{{ a.completed_units }}">
+                             <button class="btn btn-outline-success btn-sm" type="submit" title="Actualizar">
+                               <i class="bi bi-check"></i>
+                             </button>
+                           </div>
+                         </form>
+                         <button type="button" class="btn btn-outline-primary btn-sm"
+                                 data-bs-toggle="modal" data-bs-target="#editActivityModal"
+                                 data-id="{{ a.id }}"
+                                 data-name="{{ a.name }}"
+                                 data-description="{{ a.description }}"
+                                 data-total_units="{{ a.total_units }}"
+                                 data-unit_of_measure="{{ a.unit_of_measure }}"
+                                 data-complexity="{{ a.complexity }}"
+                                 data-effort="{{ a.effort }}"
+                                 data-impact="{{ a.impact }}" title="Editar">
+                           <i class="bi bi-pencil"></i>
+                         </button>
+                         <form class="d-inline" method="post" action="{% url 'delete_activity' a.id %}">
+                           {% csrf_token %}
+                           <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar esta actividad?')" title="Eliminar">
+                             <i class="bi bi-trash"></i>
+                           </button>
+                         </form>
+                       </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-muted">No hay actividades aún.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Información de fórmula y detalles del proyecto -->
+  <div class="modal fade" id="formulaInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Detalles del proyecto · {{ project.cod_projects_id }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <p class="mb-1"><strong>Centro de costo:</strong> {{ project.cost_center }}</p>
+            {% if activities_detail %}
+            <p class="mb-1"><strong>Peso total:</strong> {{ activities_detail.total_weight|default:"-" }}%</p>
+            {% endif %}
+          </div>
+
+          <!-- Vista previa de pesos por actividad -->
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Actividad</th>
+                  <th class="text-center">Comp</th>
+                  <th class="text-center">Esf</th>
+                  <th class="text-center">Imp</th>
+                  <th class="text-end">Unidades</th>
+                  <th class="text-end">Peso actual</th>
+                  <th class="text-end">Peso esperado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in activities_weight_preview %}
+                <tr>
+                  <td>{{ row.activity.name }}</td>
+                  <td class="text-center">{{ row.activity.complexity }}</td>
+                  <td class="text-center">{{ row.activity.effort }}</td>
+                  <td class="text-center">{{ row.activity.impact }}</td>
+                  <td class="text-end">{{ row.activity.total_units }} {{ row.activity.unit_of_measure }}</td>
+                  <td class="text-end">{{ row.activity.calculated_weight|default:"-" }}</td>
+                  <td class="text-end">{{ row.expected_weight|floatformat:2 }}%</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-muted">Sin actividades aún.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Editar actividad -->
+  <div class="modal fade" id="editActivityModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar actividad</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editActivityForm" method="post">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-2">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" name="name" id="editName" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" name="description" id="editDescription" rows="3"></textarea>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label">Unidades</label>
+                <input type="number" class="form-control" name="total_units" id="editTotalUnits" min="1" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Unidad de medida</label>
+                <input type="text" class="form-control" name="unit_of_measure" id="editUnitOfMeasure" required>
+              </div>
+            </div>
+            <div class="row g-2 mt-2">
+              <div class="col-4">
+                <label class="form-label">Complejidad (1-5)</label>
+                <select class="form-select" name="complexity" id="editComplexity" required>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <label class="form-label">Esfuerzo (1-5)</label>
+                <select class="form-select" name="effort" id="editEffort" required>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <label class="form-label">Impacto (1-5)</label>
+                <select class="form-select" name="impact" id="editImpact" required>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Rellenar modal de edición con datos de la fila
+const editModal = document.getElementById('editActivityModal');
+editModal?.addEventListener('show.bs.modal', function (event) {
+  const button = event.relatedTarget;
+  if (!button) return;
+  const id = button.getAttribute('data-id');
+  document.getElementById('editActivityForm').action = `/activity/${id}/edit/`;
+  document.getElementById('editName').value = button.getAttribute('data-name') || '';
+  document.getElementById('editDescription').value = button.getAttribute('data-description') || '';
+  document.getElementById('editTotalUnits').value = button.getAttribute('data-total_units') || 1;
+  document.getElementById('editUnitOfMeasure').value = button.getAttribute('data-unit_of_measure') || '';
+  document.getElementById('editComplexity').value = button.getAttribute('data-complexity') || '3';
+  document.getElementById('editEffort').value = button.getAttribute('data-effort') || '3';
+  document.getElementById('editImpact').value = button.getAttribute('data-impact') || '3';
+});
+
+// Select de proyecto (ya existente)
+document.getElementById('projectSelector')?.addEventListener('change', function() {
+  const projectId = this.value;
+  window.location.href = `/project/${projectId}/pmi-activities/`;
+});
+</script>
+{% endblock %}

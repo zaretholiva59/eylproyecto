@@ -1,0 +1,143 @@
+{% extends "contabilidad/base_contabilidad.html" %}
+{% load formatting %}
+
+{% block title %}Facturas de Clientes - Tesorero{% endblock %}
+{% block page_title %}📋 Facturas de Clientes{% endblock %}
+
+{% block sidebar %}
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:asistente_dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" href="{% url 'contabilidad:factura_cliente_list' %}">
+        <i class="bi bi-receipt"></i> Mis Facturas
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:factura_cliente_crear' %}">
+        <i class="bi bi-plus-circle"></i> Nueva Factura
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'contabilidad:reportes_contables' %}">
+        <i class="bi bi-graph-up"></i> Reportes
+    </a>
+</li>
+{% endblock %}
+
+{% block header_buttons %}
+<div class="btn-group me-2">
+    <a href="{% url 'contabilidad:factura_cliente_crear' %}" class="btn btn-sm btn-success">
+        <i class="bi bi-plus-circle"></i> Nueva Factura
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="todas" {% if estado_filtro == 'todas' %}selected{% endif %}>Todas</option>
+                        {% for codigo, nombre in estados %}
+                            <option value="{{ codigo }}" {% if estado_filtro == codigo %}selected{% endif %}>{{ nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="buscar" class="form-control" placeholder="Número factura o proyecto" value="{{ buscar }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+                    <a href="{% url 'contabilidad:factura_cliente_crear' %}" class="btn btn-success">+ Nueva Factura</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de facturas -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>N° Factura</th>
+                            <th>Proyecto</th>
+                            <th>Monto</th>
+                            <th>Fecha Emisión</th>
+                            <th>Vencimiento</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for factura in facturas %}
+                        <tr>
+                            <td>
+                                <strong>{{ factura.invoice_number }}</strong>
+                                {% if factura.invoice_file %}
+                                <br>
+                                <small>
+                                    <a href="{{ factura.invoice_file.url }}" target="_blank" class="text-primary">
+                                        <i class="bi bi-file-pdf"></i> Ver PDF
+                                    </a>
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>{{ factura.project.cod_projects_id }} - {{ factura.project.cod_projects.dres_chance }}</td>
+                            <td>S/ {{ factura.amount|currency_pe }}</td>
+                            <td>{{ factura.invoice_date }}</td>
+                            <td>
+                                {% if factura.due_date %}
+                                    {{ factura.due_date }}
+                                {% else %}
+                                    <span class="text-muted">Sin definir</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if factura.status == 'EMITIDA' %}
+                                    <span class="badge bg-warning">🟡 EMITIDA</span>
+                                {% elif factura.status == 'PAGO_REPORTADO' %}
+                                    <span class="badge bg-info">🟠 PAGO REPORTADO</span>
+                                {% elif factura.status == 'PAGADA' %}
+                                    <span class="badge bg-success">🟢 PAGADA</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ factura.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if factura.status == 'EMITIDA' and not es_jefe %}
+                                    <a href="{% url 'contabilidad:reportar_pago' factura.id %}" class="btn btn-sm btn-primary">
+                                        📞 Reportar Pago
+                                    </a>
+                                {% elif factura.status == 'PAGO_REPORTADO' and es_jefe %}
+                                    <a href="{% url 'contabilidad:verificar_pago' factura.id %}" class="btn btn-sm btn-success">
+                                        ✅ Verificar Pago
+                                    </a>
+                                {% elif factura.status == 'PAGADA' %}
+                                    <span class="text-success">✓ Completada</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                No hay facturas para mostrar
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

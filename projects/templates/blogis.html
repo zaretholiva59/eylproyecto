@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid my-4">
+
+
+  <!-- 🔹 Nav exclusivo de logística -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4 rounded-3">
+    <div class="container-fluid">
+<a class="navbar-brand fw-bold text-white" href="#" style="background-color: transparent !important; padding: 0.5rem 1rem;">📦 Logística</a>      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#logisNavbar" aria-controls="logisNavbar" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="logisNavbar">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}active{% endif %}" href="{% url 'supplier_list' %}">
+              <i class="bi bi-people"></i> Proveedores
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}" href="{% url 'product_list' %}">
+              <i class="bi bi-box-seam"></i> Productos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'logis_index' %}active{% endif %}" href="{% url 'logis_index' %}">
+              <i class="bi bi-receipt"></i> Órdenes de compra
+            </a>
+
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenido dinámico -->
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-4">
+      {% block logis_content %}
+      <p class="text-muted">Selecciona una opción del menú de Logística.</p>
+      {% endblock %}
+    </div>
+  </div>
+</div>
+<!-- 🔹 Bloque opcional para scripts adicionales -->
+{% block extra_js %}{% endblock %}
+{% endblock %}
