@@ -22,7 +22,7 @@ except ImportError:
 
 # Configurar Poppler
 # Configurar Poppler
-POPPLER_PATH = r"C:\Users\zaret\Desktop\poppler-25.11.0\Library\bin"
+POPPLER_PATH = r"C:\Users\zareth.oliva\Desktop\poppler-25.07.0\Library\bin"
 if POPPLER_PATH:
     pdfinfo_path = os.path.join(POPPLER_PATH, 'pdfinfo.exe')
     if os.path.exists(pdfinfo_path):

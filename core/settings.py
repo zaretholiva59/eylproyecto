@@ -115,7 +115,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'eyl_db',
         'USER': 'postgres',
-        'PASSWORD': 'postgres123',  # ⚠️ CAMBIA ESTA CONTRASEÑA POR LA QUE USASTE
+        'PASSWORD': 'Admin123456',  # ⚠️ CAMBIA ESTA CONTRASEÑA POR LA QUE USASTE EN ESTA LAPTOP
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -207,3 +207,26 @@ LOGGING = {
 logs_dir = BASE_DIR / 'logs'
 if not logs_dir.exists():
     os.makedirs(logs_dir, exist_ok=True)
+
+# ========================
+#  CONFIGURACIÓN POPPLER & TESSERACT
+# ========================
+
+# Ruta de Poppler - CORREGIR PARA ESTA LAPTOP
+POPPLER_PATH = r'C:\Users\zareth.oliva\Desktop\poppler-25.07.0\Library\bin'
+
+# Ruta de Tesseract
+TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+# Verificar que las rutas existen
+import os
+if os.path.exists(POPPLER_PATH):
+    print(f"[OK] Poppler encontrado en: {POPPLER_PATH}")
+else:
+    print(f"[WARN] Poppler no encontrado - PDFs escaneados no podran procesarse")
+    print(f"   Verificar ruta: {POPPLER_PATH}")
+
+if os.path.exists(TESSERACT_CMD):
+    print(f"[OK] Tesseract configurado")
+else:
+    print(f"[WARN] Tesseract no encontrado - OCR no funcionara")
