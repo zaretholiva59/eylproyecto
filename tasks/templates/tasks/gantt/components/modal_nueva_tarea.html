@@ -1,54 +1,99 @@
 <div id="modalNuevaTarea" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 animate-slide-in">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-t-2xl">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xl font-bold">Crear Nueva Tarea</h3>
-                    <button onclick="cerrarModal()" class="text-white hover:text-gray-200">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <form id="formNuevaTarea" class="p-6 space-y-4">
-                {% csrf_token %}
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Proyecto</label>
-                    <select name="project" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500">
-                        <option value="">Seleccionar proyecto...</option>
-                        {% for proj in projects %}
-                            <option value="{{ proj.cod_projects_id }}">{{ proj.display_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Título de la tarea</label>
-                    <input type="text" name="title" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500" placeholder="Ej: Instalación eléctrica">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Unidades planificadas</label>
-                    <input type="number" name="units_planned" value="1" step="0.01" min="0.01" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500">
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha inicio</label>
-                        <input type="datetime-local" name="planned_start" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha fin</label>
-                        <input type="datetime-local" name="planned_end" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500">
-                    </div>
-                </div>
-            </form>
-            
-            <div class="bg-gray-50 px-6 py-4 rounded-b-2xl flex justify-end space-x-3">
-                <button onclick="cerrarModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300">Cancelar</button>
-                <button onclick="guardarNuevaTarea()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg font-semibold hover:shadow-lg">Guardar Tarea</button>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 animate-slide-in">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold">✨ Crear Nueva Tarea</h3>
+                <button onclick="cerrarModal()" class="text-white hover:text-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
         </div>
+        
+        <!-- 🎯 FORM DJANGO COMPLETO -->
+        <form id="formNuevaTarea" class="p-6 space-y-4" method="post">
+            {% csrf_token %}
+            
+            <!-- ========== PROYECTO ========== -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    {{ form.project.label }}  <!-- 🏢 Proyecto -->
+                </label>
+                {{ form.project }}  <!-- ← SELECT AUTOMÁTICO -->
+                {% if form.project.errors %}
+                <div class="text-red-600 text-sm mt-1">{{ form.project.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <!-- ========== TÍTULO ========== -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    {{ form.title.label }}  <!-- 📝 Título de la tarea -->
+                </label>
+                {{ form.title }}  <!-- ← INPUT AUTOMÁTICO con placeholder -->
+                {% if form.title.errors %}
+                <div class="text-red-600 text-sm mt-1">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <!-- ========== DESCRIPCIÓN (NUEVO) ========== -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    {{ form.descripcion.label }}  <!-- 📋 Descripción -->
+                </label>
+                {{ form.descripcion }}  <!-- ← TEXTAREA AUTOMÁTICO -->
+                {% if form.descripcion.errors %}
+                <div class="text-red-600 text-sm mt-1">{{ form.descripcion.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <!-- ========== UNIDADES + TAREA PADRE ========== -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- UNIDADES PLANIFICADAS -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        {{ form.units_planned.label }}  <!-- 📊 Unidades planificadas -->
+                    </label>
+                    {{ form.units_planned }}  <!-- ← INPUT NUMBER AUTOMÁTICO -->
+                    {% if form.units_planned.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.units_planned.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- TAREA PADRE (SUB-TAREAS) -->
+                
+            </div>
+            
+            <!-- ========== FECHAS ========== -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- FECHA INICIO -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        {{ form.planned_start.label }}  <!-- 📅 Fecha inicio -->
+                    </label>
+                    {{ form.planned_start }}  <!-- ← DATETIME AUTOMÁTICO -->
+                    {% if form.planned_start.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.planned_start.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- FECHA FIN -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        {{ form.planned_end.label }}  <!-- 📅 Fecha fin -->
+                    </label>
+                    {{ form.planned_end }}  <!-- ← DATETIME AUTOMÁTICO -->
+                    {% if form.planned_end.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.planned_end.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+        
+        <div class="bg-gray-50 px-6 py-4 rounded-b-2xl flex justify-end space-x-3">
+            <button onclick="cerrarModal()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300">❌ Cancelar</button>
+            <button onclick="guardarNuevaTarea()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg font-semibold hover:shadow-lg">💾 Guardar Tarea</button>
+        </div>
     </div>
+</div>

@@ -50,7 +50,7 @@ def create_task_view(request):
                 # ✨ GUARDAR LA TAREA
                 task.save()
                 
-                print(f"DEBUG: Tarea creada con ID = {task.id}, Parent = {task.parent}")
+                print(f"DEBUG: Tarea creada con ID = {task.id}")
                 
                 return JsonResponse({
                     'success': True,

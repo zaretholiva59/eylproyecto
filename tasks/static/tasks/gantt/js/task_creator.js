@@ -1,55 +1,54 @@
-// Crear nueva tarea
-
-function guardarNuevaTarea() {
+// ACTUALIZAR la función guardarNuevaTarea existente
+async function guardarNuevaTarea() {
     const form = document.getElementById('formNuevaTarea');
     const formData = new FormData(form);
     
-    // Validar que las unidades planificadas sean mayor a 0
-    const unitsPlanned = parseFloat(formData.get('units_planned') || 0);
-    if (unitsPlanned <= 0) {
-        alert('⚠️ Las unidades planificadas deben ser mayores a 0');
-        return;
-    }
+    console.log('📤 Enviando formulario Django...');
     
-    // Validar que se haya seleccionado un proyecto
-    const project = formData.get('project');
-    if (!project) {
-        alert('⚠️ Por favor selecciona un proyecto');
-        return;
-    }
+    // 🎯 NUEVO: El Form Django ya valida automáticamente, podemos quitar validaciones manuales
+    // (O mantenerlas como doble verificación)
     
-    fetch('/tasks/crear/', {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-CSRFToken': csrfToken }
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        const response = await fetch('/tasks/crear/', {  // ← USA TU URL ACTUAL
+            method: 'POST',
+            body: formData,
+            headers: { 
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        
         if (data.success) {
+            console.log('✅ Tarea creada:', data);
+            alert(data.message || '✅ Tarea creada exitosamente');
             cerrarModal();
             location.reload();
-        } else {
-            // Mostrar errores específicos
-            let errorMsg = data.error || 'Error al guardar la tarea';
             
-            if (data.error_messages && data.error_messages.length > 0) {
-                errorMsg = 'Errores de validación:\n\n' + data.error_messages.join('\n');
-            } else if (data.error_details) {
-                const details = [];
+        } else {
+            console.error('❌ Errores del Form Django:', data);
+            
+            // 🎯 MEJORADO: Mostrar errores específicos del Form Django
+            let errorMsg = 'Errores de validación:\n\n';
+            
+            if (data.error_details) {
+                // Errores por campo del Form Django
                 for (const [field, errors] of Object.entries(data.error_details)) {
-                    details.push(`${field}: ${errors.join(', ')}`);
+                    errorMsg += `• ${field}: ${errors.join(', ')}\n`;
                 }
-                if (details.length > 0) {
-                    errorMsg = 'Errores de validación:\n\n' + details.join('\n');
-                }
+            } else if (data.error_messages && data.error_messages.length > 0) {
+                // Mensajes de error legibles
+                errorMsg += data.error_messages.join('\n');
+            } else {
+                errorMsg = data.error || 'Error desconocido al guardar la tarea';
             }
             
             alert(errorMsg);
-            console.error('Errores del formulario:', data);
         }
-    })
-    .catch(error => {
-        console.error('Error de red:', error);
-        alert('Error de conexión al guardar la tarea');
-    });
+        
+    } catch (error) {
+        console.error('🚨 Error de red:', error);
+        alert('Error de conexión al guardar la tarea: ' + error.message);
+    }
 }

@@ -2,6 +2,7 @@ from multiprocessing import context
 from urllib import request
 from django.shortcuts import render
 from django.db.models import Sum, Q, Count
+from tasks.forms.task_forms import TaskForm
 from ..models import Task
 from projects.models import Projects
 
@@ -22,6 +23,9 @@ def gantt_view(request, project_id=None):
     else:
         project = None
         tasks = Task.objects.all()
+
+    # ✨ NUEVO: Inicializar el Form Django
+    task_form = TaskForm()
     
     # ✨ NUEVO: Calcular stats reales
     total_tasks = tasks.count()
@@ -75,5 +79,6 @@ def gantt_view(request, project_id=None):
         'in_progress_tasks': in_progress_tasks,
         'done_tasks': done_tasks,
         'global_progress': global_progress,
+        'form': task_form,  
     }
     return render(request, 'tasks/gantt/index.html', context)

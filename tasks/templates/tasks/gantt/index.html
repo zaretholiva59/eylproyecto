@@ -1,7 +1,7 @@
 {% extends "tasks/base.html" %}
 {% load static %}
 
-{% block title %}Diagrama de Gantt - {{ project.cod_projects|default:"Todos los proyectos" }}{% endblock %}
+{% block title %}Actividades - {{ project.cod_projects|default:"Todos los proyectos" }}{% endblock %}
 
 {% block content %}
     {% include "tasks/gantt/components/header.html" %}
