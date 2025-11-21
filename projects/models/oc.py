@@ -2,8 +2,7 @@ from django.db import models
 from .choices import oc_state
 
 class PurchaseOrder(models.Model):
-    id = models.AutoField(primary_key=True)
-    po_number = models.CharField(max_length=30)
+    po_number = models.CharField(primary_key=True, max_length=30)  # ← PO_NUMBER COMO PK
     project_code = models.ForeignKey('projects.Projects', on_delete=models.CASCADE)
     issue_date = models.DateField(null=True, blank=True)
     initial_delivery_date = models.DateField(null=True, blank=True)
@@ -50,7 +49,7 @@ class PurchaseOrder(models.Model):
 
     class Meta:
         db_table = "purchase_order"
-        unique_together = [('po_number', 'project_code')]
+        # Ya no necesitas unique_together porque po_number es PK
     
     def __str__(self):
         return f"PO {self.po_number} - Project {self.project_code}"

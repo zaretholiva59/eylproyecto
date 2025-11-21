@@ -5,7 +5,7 @@ from .oc import PurchaseOrder
 from projects.models.supplier import Supplier
 
 class PODetailSupplier(models.Model):
-    purchase_order = models.ForeignKey(PurchaseOrder, to_field='id', on_delete=models.CASCADE)
+    purchase_order = models.ForeignKey(PurchaseOrder, to_field='po_number', on_delete=models.CASCADE)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
     
     # 🔥 CAMPO NUEVO QUE FALTABA

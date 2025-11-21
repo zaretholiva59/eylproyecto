@@ -1,3 +1,38 @@
+// Funciones para manejar el modal de nueva tarea
+// Estas funciones pueden estar definidas en el template, así que verificamos primero
+if (typeof abrirModalNuevaTarea === 'undefined') {
+    window.abrirModalNuevaTarea = function() {
+        const modal = document.getElementById('modalNuevaTarea');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    };
+}
+
+if (typeof cerrarModal === 'undefined') {
+    window.cerrarModal = function() {
+        const modal = document.getElementById('modalNuevaTarea');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+}
+
+// Cerrar modal al hacer clic fuera (ya manejado en template, pero por si acaso)
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalNuevaTarea');
+    if (modal && !modal.hasAttribute('data-click-listener')) {
+        modal.setAttribute('data-click-listener', 'true');
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                cerrarModal();
+            }
+        });
+    }
+});
+
 // ✨ NUEVA FUNCIÓN: Guardar tarea en BD (para sub-tareas desde lightbox)
 function guardarTareaEnBD(task) {
     // Obtener el proyecto actual desde el URL

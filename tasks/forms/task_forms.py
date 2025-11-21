@@ -4,15 +4,15 @@ from django.utils import timezone
 from datetime import datetime
 from tasks.models.task import Task
 from projects.models.projects import Projects
+from core.forms_base import BaseModelForm
+from core.forms_config import crear_widget, validar_numero_positivo, validar_rango_fechas
 
-class TaskForm(forms.ModelForm):
+class TaskForm(BaseModelForm):
     # Campo opcional para parent (sub-tareas)
     parent = forms.ModelChoiceField(
         required=False,
         queryset=Task.objects.all(),
-        widget=forms.Select(attrs={
-            'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500',
-        }),
+        widget=crear_widget('select'),
         label="📂 Tarea Padre",
         help_text="Opcional: selecciona si es una sub-tarea"
     )
@@ -29,8 +29,9 @@ class TaskForm(forms.ModelForm):
     def clean_planned_start(self):
         """Validar fecha de inicio"""
         planned_start = self.cleaned_data.get('planned_start')
-        if planned_start and planned_start < timezone.now():
-            raise forms.ValidationError('⚠️ La fecha de inicio no puede ser en el pasado.')
+        # Permitir fechas en el pasado para flexibilidad (se puede cambiar después)
+        # if planned_start and planned_start < timezone.now():
+        #     raise forms.ValidationError('⚠️ La fecha de inicio no puede ser en el pasado.')
         return planned_start
     
     def clean_planned_end(self):
@@ -38,17 +39,22 @@ class TaskForm(forms.ModelForm):
         planned_end = self.cleaned_data.get('planned_end')
         planned_start = self.cleaned_data.get('planned_start')
         
-        if planned_start and planned_end and planned_end <= planned_start:
-            raise forms.ValidationError('⚠️ La fecha fin debe ser posterior a la fecha inicio.')
-        
-        return planned_end
+        return validar_rango_fechas(
+            planned_start,
+            planned_end,
+            mensaje='⚠️ La fecha fin debe ser posterior a la fecha inicio.'
+        )
     
     def clean_units_planned(self):
         """Validar unidades planificadas"""
         units_planned = self.cleaned_data.get('units_planned')
-        if units_planned and units_planned <= 0:
-            raise forms.ValidationError('⚠️ Las unidades planificadas deben ser mayores a 0.')
-        return units_planned
+        # Si no se proporciona, usar valor por defecto
+        if units_planned is None or units_planned == '':
+            return 1.0
+        return validar_numero_positivo(
+            units_planned, 
+            mensaje='⚠️ Las unidades planificadas deben ser mayores a 0.'
+        )
     
     def clean(self):
         """Validación general"""
@@ -68,32 +74,13 @@ class TaskForm(forms.ModelForm):
             'descripcion'  # Agregamos descripción también
         ]
         widgets = {
-            'project': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500',
-            }),
-            'title': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500',
-                'placeholder': 'Ej: Instalación eléctrica principal'
-            }),
-            'units_planned': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500',
-                'step': '0.01',
-                'min': '0.01',
-                'value': '1.00'
-            }),
-            'planned_start': forms.DateTimeInput(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500',
-                'type': 'datetime-local'
-            }),
-            'planned_end': forms.DateTimeInput(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500', 
-                'type': 'datetime-local'
-            }),
-            'descripcion': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500',
-                'rows': 3,
-                'placeholder': 'Descripción detallada de la tarea...'
-            }),
+            'project': crear_widget('select'),
+            'title': crear_widget('text', placeholder='Ej: Instalación eléctrica principal'),
+            'units_planned': crear_widget('number', step='0.01', min='0.01', value='1.00'),
+            'planned_start': crear_widget('datetime'),
+            'planned_end': crear_widget('datetime'),
+            'descripcion': crear_widget('textarea', rows=3, placeholder='Descripción detallada de la tarea...'),
+            'parent': crear_widget('select'),
         }
         labels = {
             'project': '🏢 Proyecto',

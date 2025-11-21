@@ -5,7 +5,7 @@ from projects.models.product import Product
 from projects.models.podetail_supplier import PODetailSupplier
 
 class PODetailProduct(models.Model):
-    purchase_order = models.ForeignKey(PurchaseOrder, to_field='id', on_delete=models.CASCADE)
+    purchase_order = models.ForeignKey(PurchaseOrder, to_field='po_number', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     
     product_name = models.CharField(max_length=255, blank=True)

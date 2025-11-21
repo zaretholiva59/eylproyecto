@@ -14,24 +14,25 @@ try:
     TESSERACT_PATH = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     if os.path.exists(TESSERACT_PATH):
         pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
-        print("✅ Tesseract configurado")
+        print("[OK] Tesseract configurado")
     else:
-        print("⚠️ Tesseract no encontrado en ruta específica")
+        print("[WARN] Tesseract no encontrado en ruta especifica")
 except ImportError:
-    print("⚠️ pytesseract no instalado")
+    print("[WARN] pytesseract no instalado")
 
 # Configurar Poppler
-POPPLER_PATH = r"C:\Users\zareth.oliva\Desktop\poppler-25.07.0\Library\bin"
+# Configurar Poppler
+POPPLER_PATH = r"C:\Users\zaret\Desktop\poppler-25.11.0\Library\bin"
 if POPPLER_PATH:
     pdfinfo_path = os.path.join(POPPLER_PATH, 'pdfinfo.exe')
     if os.path.exists(pdfinfo_path):
-        print(f"✅ Poppler encontrado en: {POPPLER_PATH}")
+        print(f"[OK] Poppler encontrado en: {POPPLER_PATH}")
     else:
-        print("⚠️ Poppler no encontrado - PDFs escaneados no podrán procesarse")
+        print("[WARN] Poppler no encontrado - PDFs escaneados no podran procesarse")
         print("   Verificar ruta:", POPPLER_PATH)
         POPPLER_PATH = None
 else:
-    print("⚠️ Poppler no configurado")
+    print("[WARN] Poppler no configurado")
 
 class ClientInvoicePDFParser:
     """
@@ -45,7 +46,7 @@ class ClientInvoicePDFParser:
         try:
             file_name = getattr(pdf_file, 'name', 'Unknown')
             print(f"\n{'='*60}")
-            print(f"🔍 INICIANDO ANÁLISIS: {file_name}")
+            print(f" INICIANDO ANÁLISIS: {file_name}")
             print(f"{'='*60}\n")
             
             # Determinar extensión del archivo
@@ -57,7 +58,7 @@ class ClientInvoicePDFParser:
             if hasattr(pdf_file, 'temporary_file_path'):
                 try:
                     temp_path = pdf_file.temporary_file_path()
-                    print(f"📁 Usando archivo temporal de Django: {temp_path}")
+                    print(f" Usando archivo temporal de Django: {temp_path}")
                 except Exception:
                     temp_path = None
 
@@ -65,7 +66,7 @@ class ClientInvoicePDFParser:
                 suffix = file_ext if file_ext else ('.png' if is_image else '.pdf')
                 tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
                 temp_path = tmp.name
-                print(f"📁 Creando archivo temporal: {temp_path}")
+                print(f" Creando archivo temporal: {temp_path}")
                 
                 # Escribir contenido del archivo
                 pdf_file.seek(0)
@@ -75,22 +76,22 @@ class ClientInvoicePDFParser:
 
             # Detectar el tipo real del archivo (no solo por extensión)
             file_type = self._detect_file_type(temp_path, file_name)
-            print(f"🔍 Tipo de archivo detectado: {file_type}")
+            print(f" Tipo de archivo detectado: {file_type}")
             
             if file_type == 'image':
-                print("🖼️  Archivo detectado como IMAGEN (por contenido)")
+                print("️  Archivo detectado como IMAGEN (por contenido)")
                 data = self.parse_image_with_ocr(temp_path)
             elif file_type == 'pdf_image':  # PDF que es realmente una imagen
-                print("📄🖼️  PDF detectado como imagen escaneada")
+                print("️  PDF detectado como imagen escaneada")
                 data = self.parse_pdf_with_ocr(temp_path)
             else:
-                print("📄 Archivo detectado como PDF con texto")
+                print(" Archivo detectado como PDF con texto")
                 data = self.parse_pdf_smart(temp_path)
 
             print(f"\n{'='*60}")
             print(f"✅ ANÁLISIS COMPLETADO")
             print(f"{'='*60}")
-            print(f"📊 Campos detectados: {len(data)}")
+            print(f" Campos detectados: {len(data)}")
             for key, value in data.items():
                 print(f"   ✓ {key}: {value}")
             print(f"{'='*60}\n")
@@ -107,7 +108,7 @@ class ClientInvoicePDFParser:
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.remove(temp_path)
-                    print(f"🗑️  Archivo temporal eliminado: {temp_path}")
+                    print(f"️  Archivo temporal eliminado: {temp_path}")
                 except Exception as e:
                     print(f"⚠️  No se pudo eliminar temporal: {e}")
     
@@ -140,7 +141,7 @@ class ClientInvoicePDFParser:
         """
         Procesa un PDF que es realmente una imagen usando OCR
         """
-        print("🔬 Procesando PDF como imagen con OCR...")
+        print(" Procesando PDF como imagen con OCR...")
         text = _extract_text_from_pdf_with_ocr(pdf_path)
         
         if not text:
@@ -150,7 +151,7 @@ class ClientInvoicePDFParser:
         print(f"✅ Texto extraído: {len(text)} caracteres")
         # Limpiar texto OCR
         text = self._clean_ocr_text(text)
-        print("📝 Texto después de limpieza:")
+        print(" Texto después de limpieza:")
         print("-" * 50)
         print(text[:800])
         print("-" * 50)
@@ -162,7 +163,7 @@ class ClientInvoicePDFParser:
         """
         Método inteligente que decide si usar extracción de texto o OCR
         """
-        print("\n🔬 PASO 1: Intentando extracción de texto...")
+        print("\n PASO 1: Intentando extracción de texto...")
         
         # Intentar extraer texto primero
         text = self._extract_text_improved(pdf_path)
@@ -186,11 +187,11 @@ class ClientInvoicePDFParser:
             print(f"✅ Texto extraído correctamente ({len(text)} chars)")
             # Mostrar solo preview del texto
             preview = text[:300].replace('\n', ' ')
-            print(f"📝 Preview: {preview}...")
+            print(f" Preview: {preview}...")
         
         # Si el texto no es útil, usar OCR
         if needs_ocr:
-            print("\n🔬 PASO 2: Aplicando OCR...")
+            print("\n PASO 2: Aplicando OCR...")
             ocr_text = _extract_text_from_pdf_with_ocr(pdf_path)
             
             if ocr_text and len(ocr_text.strip()) >= 50:
@@ -198,7 +199,7 @@ class ClientInvoicePDFParser:
                 # Limpiar texto OCR de artefactos
                 ocr_text = self._clean_ocr_text(ocr_text)
                 text = ocr_text
-                print("📝 Texto OCR después de limpieza:")
+                print(" Texto OCR después de limpieza:")
                 print("-" * 50)
                 print(text[:500])
                 print("-" * 50)
@@ -207,10 +208,10 @@ class ClientInvoicePDFParser:
                 return {}
         
         # Normalizar y procesar
-        print("\n🔬 PASO 3: Normalizando texto...")
+        print("\n PASO 3: Normalizando texto...")
         normalized = self._normalize(text)
         
-        print("\n🔬 PASO 4: Extrayendo datos...")
+        print("\n PASO 4: Extrayendo datos...")
         return self._parse_text(normalized)
     
     def _clean_ocr_text(self, text: str) -> str:
@@ -291,7 +292,7 @@ class ClientInvoicePDFParser:
         text_upper = text.upper()
         found = sum(1 for kw in keywords if kw.upper() in text_upper)
         
-        print(f"🔍 Palabras clave encontradas: {found}/{len(keywords)}")
+        print(f" Palabras clave encontradas: {found}/{len(keywords)}")
         return found >= 2
     
     def parse_image_with_ocr(self, image_path: str) -> Dict[str, Any]:
@@ -299,7 +300,7 @@ class ClientInvoicePDFParser:
         Extrae texto de una imagen usando OCR - MEJORADO
         """
         try:
-            print("🔬 Procesando imagen con OCR...")
+            print(" Procesando imagen con OCR...")
             text = _extract_text_with_ocr(image_path)
             
             if not text:
@@ -309,7 +310,7 @@ class ClientInvoicePDFParser:
             print(f"✅ Texto extraído: {len(text)} caracteres")
             # Limpiar texto OCR
             text = self._clean_ocr_text(text)
-            print("📝 Texto después de limpieza:")
+            print(" Texto después de limpieza:")
             print("-" * 50)
             print(text[:800])
             print("-" * 50)
@@ -330,7 +331,7 @@ class ClientInvoicePDFParser:
         data: Dict[str, Any] = {}
         
         print("\n" + "="*60)
-        print("🔍 INICIANDO EXTRACCIÓN DE DATOS")
+        print(" INICIANDO EXTRACCIÓN DE DATOS")
         print("="*60)
         
         # 1. Número de factura - PATRONES MEJORADOS
@@ -397,7 +398,7 @@ class ClientInvoicePDFParser:
             print("   ❌ No encontrado")
         
         print("\n" + "="*60)
-        print(f"📊 RESUMEN: {len(data)} campos extraídos")
+        print(f" RESUMEN: {len(data)} campos extraídos")
         print("="*60)
         
         return data
@@ -420,7 +421,7 @@ class ClientInvoicePDFParser:
         for pattern in patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             if matches:
-                print(f"   🔍 Patrón '{pattern}' encontró: {matches}")
+                print(f"    Patrón '{pattern}' encontró: {matches}")
                 # Buscar el que parece más válido
                 for match in matches:
                     cleaned_match = re.sub(r'\s+', '-', match.strip())  # Reemplazar espacios con guiones
@@ -457,7 +458,7 @@ class ClientInvoicePDFParser:
                 end = min(len(text), match.end() + 100)
                 context = text[start:end]
                 
-                print(f"   🔍 Buscando fecha cerca de '{keyword}': {context[:50]}...")
+                print(f"    Buscando fecha cerca de '{keyword}': {context[:50]}...")
                 
                 for pattern in date_patterns:
                     date_match = re.search(pattern, context, re.IGNORECASE)
@@ -476,7 +477,7 @@ class ClientInvoicePDFParser:
                     all_dates.append(date_str)
         
         if all_dates:
-            print(f"   🔍 Fechas encontradas en texto: {all_dates}")
+            print(f"    Fechas encontradas en texto: {all_dates}")
             # Preferir fechas que parezcan recientes
             for date_str in all_dates:
                 if any(year in date_str for year in ['2025', '2024', '2023', '2026']):
@@ -486,7 +487,7 @@ class ClientInvoicePDFParser:
             return all_dates[0]  # Devolver la primera encontrada
         
         # Si no se encuentra fecha, buscar números que parezcan fechas
-        print("   🔍 Buscando patrones de fecha alternativos...")
+        print("    Buscando patrones de fecha alternativos...")
         alternative_patterns = [
             r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b",
             r"\b(\d{1,2})\s+(\d{1,2})\s+(\d{2,4})\b",
@@ -590,7 +591,7 @@ class ClientInvoicePDFParser:
         if candidate_amounts:
             # Ordenar por monto y tomar el más alto (probablemente el total)
             candidate_amounts.sort(reverse=True)
-            print(f"   🔍 Montos candidatos: {candidate_amounts}")
+            print(f"    Montos candidatos: {candidate_amounts}")
             return candidate_amounts[0][0]
         
         return None
@@ -693,7 +694,7 @@ def _extract_text_improved(file_path: str) -> Optional[str]:
             all_text = []
             
             for i, page in enumerate(pdf.pages):
-                print(f"   📄 Procesando página {i+1}...")
+                print(f"    Procesando página {i+1}...")
                 
                 # Método 1: Extracción normal
                 text = page.extract_text()
@@ -824,12 +825,12 @@ def _extract_text_from_pdf_with_ocr(pdf_path: str) -> Optional[str]:
         from pdf2image import convert_from_path
         import pytesseract
         
-        print("   🔄 Convirtiendo PDF a imagen con Poppler...")
+        print("    Convirtiendo PDF a imagen con Poppler...")
         
         # Usar poppler_path si está disponible
         poppler_kwargs = {}
         if POPPLER_PATH:
-            print(f"   📁 Usando Poppler desde: {POPPLER_PATH}")
+            print(f"    Usando Poppler desde: {POPPLER_PATH}")
             poppler_kwargs['poppler_path'] = POPPLER_PATH
         
         try:
@@ -837,7 +838,7 @@ def _extract_text_from_pdf_with_ocr(pdf_path: str) -> Optional[str]:
             images = convert_from_path(pdf_path, first_page=1, last_page=2, **poppler_kwargs)
         except Exception as e:
             print(f"   ⚠️ Error con Poppler: {e}")
-            print("   🔄 Intentando sin Poppler...")
+            print("    Intentando sin Poppler...")
             images = convert_from_path(pdf_path, first_page=1, last_page=2)
         
         if not images:
@@ -845,7 +846,7 @@ def _extract_text_from_pdf_with_ocr(pdf_path: str) -> Optional[str]:
             return None
         
         print(f"   ✅ PDF convertido a {len(images)} imagen(es)")
-        print("   🔍 Aplicando OCR con Tesseract...")
+        print("    Aplicando OCR con Tesseract...")
         
         # Configurar Tesseract si está disponible
         try:
@@ -856,7 +857,7 @@ def _extract_text_from_pdf_with_ocr(pdf_path: str) -> Optional[str]:
         
         all_text = []
         for i, image in enumerate(images):
-            print(f"   📄 Procesando imagen {i+1}...")
+            print(f"    Procesando imagen {i+1}...")
             custom_config = r'--oem 3 --psm 6 -l spa+eng'
             text = pytesseract.image_to_string(image, config=custom_config)
             if text and text.strip():

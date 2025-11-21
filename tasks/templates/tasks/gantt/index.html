@@ -18,8 +18,38 @@
     <script>
         const ganttData = {{ gantt_data|safe }};
         const csrfToken = '{{ csrf_token }}';
+        
+        // Funciones para manejar el modal de nueva tarea (definidas aquí para asegurar disponibilidad)
+        function abrirModalNuevaTarea() {
+            const modal = document.getElementById('modalNuevaTarea');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modalNuevaTarea');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
     </script>
     <script src="{% static 'tasks/gantt/js/gantt_init.js' %}"></script>
     <script src="{% static 'tasks/gantt/js/modal_handler.js' %}"></script>
     <script src="{% static 'tasks/gantt/js/task_creator.js' %}"></script>
+    <script>
+        // Asegurar que cerrarModal esté disponible para el modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('modalNuevaTarea');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        cerrarModal();
+                    }
+                });
+            }
+        });
+    </script>
 {% endblock %}

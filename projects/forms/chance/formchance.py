@@ -1,15 +1,14 @@
 from django import forms
 from projects.models.chance import Chance
+from core.forms_base import BaseModelForm
+from core.forms_config import crear_widget, validar_numero_positivo
 
 
-class ChanceForm(forms.ModelForm):
+class ChanceForm(BaseModelForm):
     # Campo adicional no-modelo para fecha de inicio del proyecto
     project_start_date = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={
-            'class': 'form-control',
-            'type': 'date'
-        })
+        widget=crear_widget('date')
     )
     def clean(self):
         cleaned_data = super().clean()
@@ -41,71 +40,18 @@ class ChanceForm(forms.ModelForm):
             'overhead_cost',
         ]
         widgets = {
-            'cod_projects': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej: PROJ-2024-001'
-            }),
-            'info_costumer': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'staff_presale': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nombre completo'
-            }),
-            'cost_center': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej: CC-001'
-            }),
-            'com_exe': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nombre del ejecutivo'
-            }),
-            'dres_chance': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Descripción detallada del proyecto'
-            }),
-            'date_aprox_close': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
-            }),
-            'currency': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'exchange_rate': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.0001',
-                'min': '0',
-                'placeholder': 'Ej: 3.7600'
-            }),
-            'cost_aprox_chance': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0.00'
-            }),
-            'material_cost': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0.00'
-            }),
-            'labor_cost': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0.00'
-            }),
-            'subcontracted_cost': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0.00'
-            }),
-            'overhead_cost': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0.00'
-            }),
+            'cod_projects': crear_widget('text', placeholder='Ej: PROJ-2024-001'),
+            'info_costumer': crear_widget('select'),
+            'staff_presale': crear_widget('text', placeholder='Nombre completo'),
+            'cost_center': crear_widget('text', placeholder='Ej: CC-001'),
+            'com_exe': crear_widget('text', placeholder='Nombre del ejecutivo'),
+            'dres_chance': crear_widget('textarea', rows=3, placeholder='Descripción detallada del proyecto'),
+            'date_aprox_close': crear_widget('date'),
+            'currency': crear_widget('select'),
+            'exchange_rate': crear_widget('number', step='0.0001', min='0', placeholder='Ej: 3.7600'),
+            'cost_aprox_chance': crear_widget('number', step='0.01', min='0', placeholder='0.00'),
+            'material_cost': crear_widget('number', step='0.01', min='0', placeholder='0.00'),
+            'labor_cost': crear_widget('number', step='0.01', min='0', placeholder='0.00'),
+            'subcontracted_cost': crear_widget('number', step='0.01', min='0', placeholder='0.00'),
+            'overhead_cost': crear_widget('number', step='0.01', min='0', placeholder='0.00'),
         }

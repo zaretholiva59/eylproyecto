@@ -27,7 +27,7 @@ class Invoice(models.Model):
     # ✅ RELACIÓN UNO-A-UNO CON ORDEN DE COMPRA (Factura Proveedor por OC)
     purchase_order = models.OneToOneField(
         'projects.PurchaseOrder',
-        to_field='id',
+        to_field='po_number',
         on_delete=models.CASCADE,
         null=True,
         blank=True,

@@ -108,15 +108,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # ========================
-#  BASE DE DATOS
+#  BASE DE DATOS - POSTGRESQL
 # ========================
-# SQLite para desarrollo simple
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'eyl_db',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres123',  # ⚠️ CAMBIA ESTA CONTRASEÑA POR LA QUE USASTE
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 # ========================
 #  VALIDACIÓN PASSWORD
 # ========================
@@ -140,7 +144,7 @@ USE_TZ = True
 # ========================
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / "staticfiles"  # 👈 nuevo
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -200,7 +204,6 @@ LOGGING = {
 }
 
 # ✅ CREAR DIRECTORIO DE LOGS SI NO EXISTE
-import os
 logs_dir = BASE_DIR / 'logs'
 if not logs_dir.exists():
     os.makedirs(logs_dir, exist_ok=True)
